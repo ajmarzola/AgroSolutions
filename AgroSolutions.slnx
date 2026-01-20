@@ -1,1 +1,16 @@
-<Solution />
+<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/services/" />
+  <Folder Name="/src/services/AgroSolutions.Analise/">
+    <Project Path="src/services/AgroSolutions.Analise/AgroSolutions.Analise.WebApi/AgroSolutions.Analise.WebApi.csproj" />
+  </Folder>
+  <Folder Name="/src/services/AgroSolutions.Ingestao/">
+    <Project Path="src/services/AgroSolutions.Ingestao/AgroSolutions.Ingestao.WebApi/AgroSolutions.Ingestao.WebApi.csproj" />
+  </Folder>
+  <Folder Name="/src/services/AgroSolutions.Propriedades/">
+    <Project Path="src/services/AgroSolutions.Propriedades/AgroSolutions.Propriedades.WebApi/AgroSolutions.Propriedades.WebApi.csproj" />
+  </Folder>
+  <Folder Name="/src/services/AgroSolutions.Usuarios/">
+    <Project Path="src/services/AgroSolutions.Usuarios/AgroSolutions.Usuarios.WebApi/AgroSolutions.Usuarios.WebApi.csproj" />
+  </Folder>
+</Solution>
