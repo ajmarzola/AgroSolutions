@@ -1,0 +1,6 @@
+@AgroSolutions.Usuarios.WebApi_HostAddress = http://localhost:5079
+
+GET {{AgroSolutions.Usuarios.WebApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

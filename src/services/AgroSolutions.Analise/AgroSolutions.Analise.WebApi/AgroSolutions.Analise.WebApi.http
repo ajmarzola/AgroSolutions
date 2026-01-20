@@ -1,0 +1,6 @@
+@AgroSolutions.Analise.WebApi_HostAddress = http://localhost:5147
+
+GET {{AgroSolutions.Analise.WebApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
