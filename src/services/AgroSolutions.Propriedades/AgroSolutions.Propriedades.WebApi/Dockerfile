@@ -14,7 +14,7 @@ WORKDIR /src
 # Copie arquivos de solution/props primeiro (se existirem)
 COPY Directory.Build.props ./
 COPY Directory.Build.targets ./
-COPY *.sln ./
+COPY *.slnx ./
 
 # Copie apenas os csproj para maximizar cache do restore
 COPY src/services/AgroSolutions.Propriedades/AgroSolutions.Propriedades.WebApi/*.csproj src/services/AgroSolutions.Propriedades/AgroSolutions.Propriedades.WebApi/
