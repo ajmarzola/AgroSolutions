@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ingestao
+  labels:
+    app.kubernetes.io/name: ingestao
+    app.kubernetes.io/part-of: agrosolutions-platform
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: ingestao
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

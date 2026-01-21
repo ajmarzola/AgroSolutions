@@ -1,0 +1,14 @@
+<Project>
+  <!-- Garantir que builds locais não virem “inferninho” com warnings como erros,
+       mas em CI sim (via Directory.Build.props com condição 'CI'). -->
+  <Target Name="FailOnWarningsInCI" BeforeTargets="CoreCompile" Condition="'$(CI)' == 'true'">
+    <PropertyGroup>
+      <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    </PropertyGroup>
+  </Target>
+
+  <!-- Padronizar diretório de resultados de teste quando rodar via dotnet test -->
+  <PropertyGroup>
+    <TestResultsDirectory>$(MSBuildThisFileDirectory)TestResults</TestResultsDirectory>
+  </PropertyGroup>
+</Project>
