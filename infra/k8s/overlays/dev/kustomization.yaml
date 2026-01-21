@@ -4,6 +4,7 @@ kind: Kustomization
 namespace: agrosolutions-dev
 
 resources:
+  - namespace.yaml
   - ../../base/analise
   - ../../base/propriedades
   - ../../base/ingestao

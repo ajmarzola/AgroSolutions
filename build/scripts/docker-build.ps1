@@ -18,7 +18,11 @@ function Get-GitSha {
 }
 
 if ([string]::IsNullOrWhiteSpace($Tag)) {
-  $Tag = if ($Environment -eq "prod") { "1.0.0" } else { Get-GitSha }
+  switch ($Environment) {
+    "local" { $Tag = "local" }
+    "dev"   { $Tag = "dev" }
+    "prod"  { $Tag = "1.0.0" } # ou: throw "Em prod, informe -Tag"
+  }
 }
 
 $services = @(

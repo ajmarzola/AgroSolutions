@@ -14,11 +14,12 @@ git_sha() {
 }
 
 if [[ -z "${TAG}" ]]; then
-  if [[ "${ENVIRONMENT}" == "prod" ]]; then
-    TAG="1.0.0"
-  else
-    TAG="$(git_sha)"
-  fi
+  case "${ENVIRONMENT}" in
+    local) TAG="local" ;;
+    dev)   TAG="dev" ;;
+    prod)  TAG="1.0.0" ;; # ou exigir TAG
+    *)     TAG="local" ;;
+  esac
 fi
 
 declare -a SERVICES=(
