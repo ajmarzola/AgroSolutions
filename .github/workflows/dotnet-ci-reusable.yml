@@ -3,9 +3,18 @@ name: dotnet-ci-reusable
 on:
   workflow_call:
     inputs:
-      project_path:
-        required: true
+      solution_path:
+        required: false
         type: string
+        default: AgroSolutions.slnx
+      project_path:
+        required: false
+        type: string
+        default: ""
+      dotnet_version:
+        required: false
+        type: string
+        default: "8.0.x"
 
 jobs:
   build-test:
@@ -16,25 +25,45 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: ${{ inputs.dotnet_version }}
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj', '**/*.props', '**/*.targets', 'NuGet.config') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-
 
       - name: Restore
-        run: dotnet restore ${{ inputs.project_path }}
+        run: |
+          if [ -n "${{ inputs.project_path }}" ]; then
+            dotnet restore "${{ inputs.project_path }}"
+          else
+            dotnet restore "${{ inputs.solution_path }}"
+          fi
 
       - name: Build (Release)
-        run: dotnet build ${{ inputs.project_path }} -c Release --no-restore
-
-      - name: Test with coverage
         run: |
-          dotnet test ${{ inputs.project_path }} -c Release --no-build \
-            /p:CollectCoverage=true \
-            /p:CoverletOutputFormat=cobertura \
-            /p:CoverletOutput=./TestResults/coverage/
+          if [ -n "${{ inputs.project_path }}" ]; then
+            dotnet build "${{ inputs.project_path }}" -c Release --no-restore
+          else
+            dotnet build "${{ inputs.solution_path }}" -c Release --no-restore
+          fi
 
-      - name: Upload coverage artifact
+      - name: Test with coverage (XPlat)
+        run: |
+          set -e
+          if ls tests/**/*.csproj 1> /dev/null 2>&1; then
+            dotnet test "${{ inputs.solution_path }}" -c Release --no-build --collect:"XPlat Code Coverage"
+          else
+            echo "No test projects found under ./tests. Skipping dotnet test."
+          fi
+
+      - name: Upload test artifacts
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-cobertura
+          name: testresults
           path: |
-            **/TestResults/coverage/coverage.cobertura.xml
-            **/TestResults/
+            **/TestResults/**

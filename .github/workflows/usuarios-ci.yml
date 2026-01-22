@@ -1,17 +1,15 @@
 name: AgroSolutions.Usuarios.WebApi CI
-
-on:
+true:
   push:
     paths:
-      - "src/services/AgroSolutions.Usuarios/AgroSolutions.Usuarios.WebApi/**"
-      - ".github/workflows/**"
+    - src/services/AgroSolutions.Usuarios/AgroSolutions.Usuarios.WebApi/**
+    - .github/workflows/**
   pull_request:
     paths:
-      - "src/services/AgroSolutions.Usuarios/AgroSolutions.Usuarios.WebApi/**"
-      - ".github/workflows/**"
-
+    - src/services/AgroSolutions.Usuarios/AgroSolutions.Usuarios.WebApi/**
+    - .github/workflows/**
 jobs:
   ci:
     uses: ./.github/workflows/dotnet-ci-reusable.yml
     with:
-      project_path: src/services/AgroSolutions.Usuarios/AgroSolutions.Usuarios.WebApi/AgroSolutions.Usuarios.WebApi.csproj
+      solution_path: AgroSolutions.slnx

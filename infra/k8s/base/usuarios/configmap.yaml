@@ -6,7 +6,4 @@ metadata:
     app.kubernetes.io/name: usuarios
     app.kubernetes.io/part-of: agrosolutions-platform
 data:
-  ASPNETCORE_ENVIRONMENT: "Production"
-  Logging__LogLevel__Default: "Information"
-  # Exemplo de config de downstream:
-  Identity__BaseUrl: "http://usuarios.default.svc.cluster.local"
+  Logging__LogLevel__Default: Information

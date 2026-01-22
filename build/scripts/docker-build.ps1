@@ -21,7 +21,8 @@ if ([string]::IsNullOrWhiteSpace($Tag)) {
   switch ($Environment) {
     "local" { $Tag = "local" }
     "dev"   { $Tag = "dev" }
-    "prod"  { $Tag = "1.0.0" } # ou: throw "Em prod, informe -Tag"
+    "prod"  { $Tag = "1.0.0" }  # Em produção, prefira informar -Tag explicitamente
+    default { $Tag = "local" }
   }
 }
 

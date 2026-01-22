@@ -1,17 +1,15 @@
 name: AgroSolutions.Propriedades.WebApi CI
-
-on:
+true:
   push:
     paths:
-      - "src/services/AgroSolutions.Propriedades/AgroSolutions.Propriedades.WebApi/**"
-      - ".github/workflows/**"
+    - src/services/AgroSolutions.Propriedades/AgroSolutions.Propriedades.WebApi/**
+    - .github/workflows/**
   pull_request:
     paths:
-      - "src/services/AgroSolutions.Propriedades/AgroSolutions.Propriedades.WebApi/**"
-      - ".github/workflows/**"
-
+    - src/services/AgroSolutions.Propriedades/AgroSolutions.Propriedades.WebApi/**
+    - .github/workflows/**
 jobs:
   ci:
     uses: ./.github/workflows/dotnet-ci-reusable.yml
     with:
-      project_path: src/services/AgroSolutions.Propriedades/AgroSolutions.Propriedades.WebApi/AgroSolutions.Propriedades.WebApi.csproj
+      solution_path: AgroSolutions.slnx
