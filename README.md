@@ -1,125 +1,155 @@
-# ?? AgroSolutions � Plataforma de Agricultura de Precis�o (Hackathon FIAP 8NETT)
-
-## ?? Vis�o Geral
-
-A **AgroSolutions** � uma plataforma de **Agricultura 4.0** desenvolvida como MVP para o **Hackathon FIAP � 8NETT**, com o objetivo de modernizar a tomada de decis�o no campo por meio de **IoT, microsservi�os, mensageria, observabilidade e an�lise de dados**.
-
-A solu��o permite que produtores rurais acompanhem dados simulados de sensores agr�colas (umidade do solo, temperatura e precipita��o), visualizem hist�ricos, recebam alertas autom�ticos e gerenciem suas propriedades e talh�es de forma centralizada.
+# 🌱 AgroSolutions – Plataforma de Agricultura de Precisão  
+### Hackathon FIAP – 8NETT
 
 ---
 
-## ?? Objetivos do Projeto
+## 📌 Visão Geral
 
-- Implementar uma **arquitetura baseada em microsservi�os**
-- Simular **ingest�o de dados de sensores agr�colas**
-- Processar dados e gerar **alertas autom�ticos**
+A **AgroSolutions** é uma plataforma de **Agricultura de Precisão (Agro 4.0)** desenvolvida como **MVP** para o **Hackathon FIAP – 8NETT**.  
+O projeto tem como objetivo apoiar produtores rurais na **tomada de decisão baseada em dados**, utilizando conceitos modernos de **IoT, microsserviços, mensageria, containers, Kubernetes e observabilidade**.
+
+A solução simula a coleta de dados de sensores agrícolas — como **umidade do solo, temperatura e precipitação** — permitindo sua análise, visualização histórica e a geração automática de **alertas inteligentes** para cada talhão.
+
+---
+
+## 🎯 Objetivos do Projeto
+
+- Modernizar a gestão agrícola com **dados em tempo (quase) real**
+- Implementar uma **arquitetura de microsserviços desacoplados**
+- Simular a **ingestão de dados de sensores agrícolas**
+- Processar dados e gerar **alertas automáticos**
 - Disponibilizar dados para **dashboards de monitoramento**
-- Demonstrar **orquestra��o com Kubernetes**
-- Aplicar **boas pr�ticas de arquitetura, seguran�a e CI/CD**
-- Preparar a base para **observabilidade com Prometheus + Grafana**
+- Demonstrar **orquestração com Kubernetes**
+- Aplicar **boas práticas de arquitetura, segurança e CI/CD**
+- Preparar o ambiente para **observabilidade com Prometheus e Grafana**
 
 ---
 
-## ?? Arquitetura da Solu��o
+## 🧩 Arquitetura da Solução
 
-A solu��o foi projetada seguindo os princ�pios de **microsservi�os desacoplados**, cada um com responsabilidade bem definida.
+A arquitetura foi desenhada seguindo princípios de **cloud-native architecture**, com serviços independentes, comunicação assíncrona e fácil escalabilidade.
 
-### Microsservi�os
+### Microsserviços (.NET)
 
-| Servi�o (Projeto .NET) | Responsabilidade |
-|------|------------------|
-| **AgroSolutions.Usuarios** | Autentica��o e autoriza��o de produtores rurais (JWT) |
-| **AgroSolutions.Propriedades** | Cadastro de propriedades, talh�es e culturas |
-| **AgroSolutions.Ingestao** | Recebimento e valida��o de dados simulados de sensores |
-| **AgroSolutions.Analise** | Processamento dos dados e gera��o de alertas |
-| **Mensageria (RabbitMQ)** | Comunica��o ass�ncrona entre servi�os |
+| Serviço | Projeto | Responsabilidade |
+|-------|--------|------------------|
+| Usuários | `AgroSolutions.Usuarios` | Autenticação e autorização de produtores (JWT) |
+| Propriedades | `AgroSolutions.Propriedades` | Cadastro de propriedades, talhões e culturas |
+| Ingestão | `AgroSolutions.Ingestao` | Recebimento e validação de dados simulados de sensores |
+| Análise | `AgroSolutions.Analise` | Processamento dos dados e geração de alertas |
+| Mensageria | RabbitMQ | Comunicação assíncrona entre serviços |
 
 ---
 
-## Estrutura de Diret�rios
+## 📂 Estrutura de Diretórios
 
-A estrutura do reposit�rio est� organizada da seguinte forma:
+A estrutura do repositório foi organizada para facilitar manutenção, deploy e entendimento arquitetural:
 
 ```
 AgroSolutions/
-|-- .github/                # Configura��es de Workflow do GitHub Actions
-|-- build/                  # Scripts e configura��es de build
-|-- docs/                   # Documenta��o adicional do projeto
-|-- infra/                  # Configura��es de infraestrutura
-|   `-- k8s/                # Manifestos Kubernetes
-|-- src/                    # C�digo fonte dos servi�os
-|   `-- services/
-|       |-- AgroSolutions.Analise/       # Servi�o de An�lise e Alertas
-|       |-- AgroSolutions.Ingestao/      # Servi�o de Ingest�o de Dados
-|       |-- AgroSolutions.Propriedades/  # Servi�o de Propriedades e Talh�es
-|       `-- AgroSolutions.Usuarios/      # Servi�o de Identidade (Auth)
-|-- AgroSolutions.slnx      # Solu��o principal (.NET)
-`-- README.md
+│
+├── .github/                # Workflows do GitHub Actions (CI/CD)
+├── build/                  # Scripts e configurações de build
+├── docs/                   # Documentação e diagramas
+├── infra/
+│   └── k8s/                # Manifestos Kubernetes
+│
+├── src/
+│   └── services/
+│       ├── AgroSolutions.Analise/        # Serviço de Análise e Alertas
+│       ├── AgroSolutions.Ingestao/       # Serviço de Ingestão de Dados
+│       ├── AgroSolutions.Propriedades/   # Serviço de Propriedades e Talhões
+│       └── AgroSolutions.Usuarios/       # Serviço de Usuários (Auth)
+│
+├── AgroSolutions.slnx       # Solução principal (.NET)
+└── README.md
 ```
 
 ---
 
-## ??? Tecnologias Utilizadas
+## 🛠️ Tecnologias Utilizadas
 
 ### Backend
 - **.NET 8 / ASP.NET Core**
 - **JWT Authentication**
 - **Entity Framework Core**
-- **REST APIs**
+- **APIs REST**
 
-### Infraestrutura
+### Infraestrutura & Containers
 - **Docker**
-- **Kubernetes (Docker Desktop / Local Cluster)**
+- **Kubernetes (Docker Desktop – ambiente local)**
 
 ### Mensageria
 - **RabbitMQ**
 
-### Observabilidade (em andamento)
+### Observabilidade *(em evolução)*
 - **Prometheus**
 - **Grafana**
 
 ### DevOps
-- **GitHub**
+- **GitHub Actions**
 - **Pipelines CI/CD**
+- **Build e versionamento de imagens Docker**
 
 ---
 
-## ?? Funcionalidades Implementadas (MVP)
+## 📊 Funcionalidades Implementadas (MVP)
 
-? Autentica��o do Produtor Rural  
-? Cadastro de Propriedades e Talh�es  
-? Ingest�o de dados simulados de sensores  
-? Processamento e an�lise de dados  
-? Gera��o de alertas autom�ticos  
-? Deploy em containers Docker  
-? Orquestra��o com Kubernetes local  
-
----
-
-## ?? Membros da Equipe � Grupo 21
-
-### ????? Anderson Marzola  
-- Matr�cula: RM360850  
-- E-mail: RM360850@fiap.com.br  
-- Discord: aj.marzola  
-- GitHub: https://github.com/ajmarzola  
-
-### ????? Rafael Nicoletti  
-- Matr�cula: RM361308  
-- E-mail: RM361308@fiap.com.br  
-- Discord: rafaelnicoletti_  
-- GitHub: https://github.com/RafaelNicoletti  
-
-### ????? Valber Martins  
-- Matr�cula: RM360859  
-- E-mail: RM360859@fiap.com.br  
-- Discord: valberdev  
-- GitHub: https://github.com/ValberX21  
+- ✔ Autenticação do Produtor Rural  
+- ✔ Cadastro de Propriedades e Talhões  
+- ✔ Ingestão de dados simulados de sensores  
+- ✔ Processamento e análise de dados agrícolas  
+- ✔ Geração de alertas automáticos  
+- ✔ Aplicação containerizada com Docker  
+- ✔ Orquestração com Kubernetes local  
 
 ---
 
-## ?? Considera��es Finais
+## 🚀 Execução do Projeto (Resumo)
 
-A AgroSolutions representa um **MVP s�lido de agricultura de precis�o**, aplicando conceitos modernos de arquitetura de software, cloud-native e DevOps, com foco em escalabilidade, observabilidade e boas pr�ticas.
+**Pré-requisitos**
+- Docker Desktop
+- Kubernetes habilitado
+- kubectl configurado
+- .NET SDK 8
 
-**FIAP � Hackathon 8NETT | Grupo 21**
+**Fluxo geral**
+1. Build das imagens Docker dos serviços
+2. Aplicação dos manifests Kubernetes
+3. Comunicação entre serviços via RabbitMQ
+4. Serviços disponíveis no cluster local
+
+---
+
+## 👥 Membros da Equipe – Grupo 21
+
+### 👨‍💻 Anderson Marzola  
+- **Matrícula:** RM360850  
+- **E-mail:** RM360850@fiap.com.br  
+- **Discord:** aj.marzola  
+- **GitHub:** https://github.com/ajmarzola  
+
+---
+
+### 👨‍💻 Rafael Nicoletti  
+- **Matrícula:** RM361308  
+- **E-mail:** RM361308@fiap.com.br  
+- **Discord:** rafaelnicoletti_  
+- **GitHub:** https://github.com/RafaelNicoletti  
+
+---
+
+### 👨‍💻 Valber Martins  
+- **Matrícula:** RM360859  
+- **E-mail:** RM360859@fiap.com.br  
+- **Discord:** valberdev  
+- **GitHub:** https://github.com/ValberX21  
+
+---
+
+## 🌾 Considerações Finais
+
+A **AgroSolutions** entrega um **MVP funcional e arquiteturalmente consistente**, aplicando conceitos modernos de engenharia de software, cloud, containers e DevOps.  
+O projeto está preparado para evolução, incluindo dashboards avançados, observabilidade completa e integração com dados externos.
+
+**FIAP – Hackathon 8NETT | Grupo 21**
