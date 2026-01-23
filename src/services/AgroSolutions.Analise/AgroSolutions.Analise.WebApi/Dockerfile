@@ -41,8 +41,8 @@ FROM mcr.microsoft.com/dotnet/aspnet:${DOTNET_VERSION}-alpine AS runtime
 WORKDIR /app
 
 # Cria usuário/grupo não-root
-RUN addgroup -S appgrp && adduser -S appusr -G appgrp
-USER appusr
+RUN addgroup -S appgrp && adduser -S -u 1000 appusr -G appgrp
+USER 1000
 
 # Porta padrão (ajuste se necessário)
 ENV ASPNETCORE_URLS=http://+:8080
