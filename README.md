@@ -1,234 +1,125 @@
-# AgroSolutions – Plataforma de Microsserviços para Agricultura Inteligente
+# ?? AgroSolutions � Plataforma de Agricultura de Precis�o (Hackathon FIAP 8NETT)
 
-## Visão Geral do Projeto
+## ?? Vis�o Geral
 
-O **AgroSolutions** é uma plataforma distribuída baseada em **microsserviços**, desenvolvida como projeto acadêmico com foco em **arquitetura moderna, escalável e orientada a cloud**.  
-O sistema simula um ecossistema de soluções para o agronegócio, cobrindo desde **gestão de propriedades rurais** até **ingestão e análise de dados**, com autenticação centralizada.
+A **AgroSolutions** � uma plataforma de **Agricultura 4.0** desenvolvida como MVP para o **Hackathon FIAP � 8NETT**, com o objetivo de modernizar a tomada de decis�o no campo por meio de **IoT, microsservi�os, mensageria, observabilidade e an�lise de dados**.
 
-O projeto foi concebido para demonstrar, de forma prática, conceitos avançados de:
-- Arquitetura de microsserviços
-- Conteinerização com Docker
-- Orquestração com Kubernetes
-- Automação de build e qualidade com CI
-- Boas práticas no ecossistema **.NET moderno**
+A solu��o permite que produtores rurais acompanhem dados simulados de sensores agr�colas (umidade do solo, temperatura e precipita��o), visualizem hist�ricos, recebam alertas autom�ticos e gerenciem suas propriedades e talh�es de forma centralizada.
 
 ---
 
-## Arquitetura Geral
+## ?? Objetivos do Projeto
 
-A solução é composta por **quatro microsserviços independentes**, todos implementados como **ASP.NET Core Web APIs**, executando em containers Docker e orquestrados via Kubernetes.
-
-```
-┌──────────────────┐
-│ IdentityService  │  ← Autenticação e identidade
-└─────────▲────────┘
-          │
-┌─────────┴────────┐
-│ PropertyService  │  ← Gestão de propriedades rurais
-└─────────▲────────┘
-          │
-┌─────────┴────────┐
-│ IngestionService │  ← Ingestão de dados (sensores / fontes externas)
-└─────────▲────────┘
-          │
-┌─────────┴────────┐
-│ AnalysisService  │  ← Análise de dados e geração de alertas
-└──────────────────┘
-```
-
-A comunicação entre os serviços ocorre via **HTTP interno no cluster Kubernetes**, utilizando o **DNS de serviços** (`service-name`) fornecido pela própria plataforma.
+- Implementar uma **arquitetura baseada em microsservi�os**
+- Simular **ingest�o de dados de sensores agr�colas**
+- Processar dados e gerar **alertas autom�ticos**
+- Disponibilizar dados para **dashboards de monitoramento**
+- Demonstrar **orquestra��o com Kubernetes**
+- Aplicar **boas pr�ticas de arquitetura, seguran�a e CI/CD**
+- Preparar a base para **observabilidade com Prometheus + Grafana**
 
 ---
 
-## Descrição dos Microsserviços
+## ?? Arquitetura da Solu��o
 
-### 1. IdentityService (Usuários)
-Responsável pela **gestão de identidade e autenticação** do sistema.
+A solu��o foi projetada seguindo os princ�pios de **microsservi�os desacoplados**, cada um com responsabilidade bem definida.
 
-**Principais responsabilidades:**
-- Cadastro e autenticação de usuários
-- Emissão e validação de tokens (JWT)
-- Serviço central de identidade consumido pelos demais microsserviços
+### Microsservi�os
 
----
-
-### 2. PropertyService (Propriedades)
-Responsável pelo **cadastro e gerenciamento de propriedades rurais**.
-
-**Principais responsabilidades:**
-- CRUD de propriedades
-- Associação de propriedades a usuários autenticados
-- Base para correlação de dados agrícolas
+| Servi�o (Projeto .NET) | Responsabilidade |
+|------|------------------|
+| **AgroSolutions.Usuarios** | Autentica��o e autoriza��o de produtores rurais (JWT) |
+| **AgroSolutions.Propriedades** | Cadastro de propriedades, talh�es e culturas |
+| **AgroSolutions.Ingestao** | Recebimento e valida��o de dados simulados de sensores |
+| **AgroSolutions.Analise** | Processamento dos dados e gera��o de alertas |
+| **Mensageria (RabbitMQ)** | Comunica��o ass�ncrona entre servi�os |
 
 ---
 
-### 3. IngestionService (Ingestão de Dados)
-Responsável pela **entrada de dados no sistema**, simulando dados de campo ou integração com fontes externas.
+## Estrutura de Diret�rios
 
-**Principais responsabilidades:**
-- Receber dados de sensores (ex.: temperatura, umidade, precipitação)
-- Persistir e normalizar dados recebidos
-- Preparar dados para análise posterior
-
----
-
-### 4. AnalysisService (Análise e Alertas)
-Responsável pela **análise dos dados ingeridos** e geração de informações de valor.
-
-**Principais responsabilidades:**
-- Processar dados provenientes do IngestionService
-- Aplicar regras de negócio e análises
-- Simular geração de alertas e insights
-
----
-
-## Tecnologias Utilizadas
-
-### Backend / Aplicação
-- **.NET 8**
-- **ASP.NET Core Web API**
-- **C#**
-- Health Checks nativos do ASP.NET Core
-
-### Conteinerização e Orquestração
-- **Docker** (multi-stage build)
-- **Kubernetes**
-- **Kustomize** (base + overlays por ambiente)
-
-### DevOps e Qualidade
-- **GitHub Actions** (CI)
-- Build automatizado
-- Execução de testes (estrutura preparada)
-- Coleta de cobertura de código (XPlat Code Coverage)
-
-### Infraestrutura Local
-- **Docker Desktop com Kubernetes habilitado**
-
----
-
-## Estrutura do Repositório (Visão Geral)
+A estrutura do reposit�rio est� organizada da seguinte forma:
 
 ```
 AgroSolutions/
-│
-├── src/
-│   └── services/
-│       ├── Usuarios/
-│       ├── Propriedades/
-│       ├── Ingestao/
-│       └── Analise/
-│
-├── infra/
-│   └── k8s/
-│       ├── base/
-│       └── overlays/
-│           ├── local/
-│           ├── dev/
-│           └── prod/
-│
-├── build/
-│   └── scripts/
-│       ├── docker-build.ps1
-│       ├── docker-build.sh
-│       └── k8s-apply.sh
-│
-├── .github/
-│   └── workflows/
-│
-└── README.md
+|-- .github/                # Configura��es de Workflow do GitHub Actions
+|-- build/                  # Scripts e configura��es de build
+|-- docs/                   # Documenta��o adicional do projeto
+|-- infra/                  # Configura��es de infraestrutura
+|   `-- k8s/                # Manifestos Kubernetes
+|-- src/                    # C�digo fonte dos servi�os
+|   `-- services/
+|       |-- AgroSolutions.Analise/       # Servi�o de An�lise e Alertas
+|       |-- AgroSolutions.Ingestao/      # Servi�o de Ingest�o de Dados
+|       |-- AgroSolutions.Propriedades/  # Servi�o de Propriedades e Talh�es
+|       `-- AgroSolutions.Usuarios/      # Servi�o de Identidade (Auth)
+|-- AgroSolutions.slnx      # Solu��o principal (.NET)
+`-- README.md
 ```
 
 ---
 
-## Como Executar o Projeto Localmente (Avaliação)
+## ??? Tecnologias Utilizadas
 
-> **Ambiente alvo:** Professores e avaliadores utilizando **Docker Desktop (Windows ou macOS)** com Kubernetes habilitado.
+### Backend
+- **.NET 8 / ASP.NET Core**
+- **JWT Authentication**
+- **Entity Framework Core**
+- **REST APIs**
 
-### Pré-requisitos
-- Docker Desktop instalado
-- Kubernetes habilitado no Docker Desktop
-- `kubectl` disponível no PATH
+### Infraestrutura
+- **Docker**
+- **Kubernetes (Docker Desktop / Local Cluster)**
 
----
+### Mensageria
+- **RabbitMQ**
 
-### Passo 1 – Clonar o repositório
-```bash
-git clone <url-do-repositorio>
-cd AgroSolutions
-```
+### Observabilidade (em andamento)
+- **Prometheus**
+- **Grafana**
 
----
-
-### Passo 2 – Build das imagens Docker (ambiente local)
-No Windows (PowerShell):
-
-```powershell
-.\build\scripts\docker-build.ps1 -Environment local -Registry ghcr.io/agrosolutions
-```
-
-Este comando:
-- Compila os quatro microsserviços
-- Gera imagens Docker com a tag `local`
+### DevOps
+- **GitHub**
+- **Pipelines CI/CD**
 
 ---
 
-### Passo 3 – Deploy no Kubernetes local
-```powershell
-kubectl apply -k .\infra\k8s\overlays\local
-```
+## ?? Funcionalidades Implementadas (MVP)
 
-O comando:
-- Cria o namespace `agrosolutions-local`
-- Sobe todos os serviços simultaneamente
-- Aplica ConfigMaps, Deployments e Services
-
----
-
-### Passo 4 – Verificar status dos serviços
-```powershell
-kubectl get pods -n agrosolutions-local
-kubectl get svc -n agrosolutions-local
-```
-
-Todos os Pods devem estar com status **Running** e **Ready**.
+? Autentica��o do Produtor Rural  
+? Cadastro de Propriedades e Talh�es  
+? Ingest�o de dados simulados de sensores  
+? Processamento e an�lise de dados  
+? Gera��o de alertas autom�ticos  
+? Deploy em containers Docker  
+? Orquestra��o com Kubernetes local  
 
 ---
 
-### Passo 5 – Acessar as APIs (Swagger)
-Utilize **port-forward** para acessar localmente:
+## ?? Membros da Equipe � Grupo 21
 
-```powershell
-kubectl port-forward -n agrosolutions-local svc/usuarios      8081:80
-kubectl port-forward -n agrosolutions-local svc/propriedades 8082:80
-kubectl port-forward -n agrosolutions-local svc/ingestao     8083:80
-kubectl port-forward -n agrosolutions-local svc/analise      8084:80
-```
+### ????? Anderson Marzola  
+- Matr�cula: RM360850  
+- E-mail: RM360850@fiap.com.br  
+- Discord: aj.marzola  
+- GitHub: https://github.com/ajmarzola  
 
-Acesse no navegador:
-- http://localhost:8081/swagger
-- http://localhost:8082/swagger
-- http://localhost:8083/swagger
-- http://localhost:8084/swagger
+### ????? Rafael Nicoletti  
+- Matr�cula: RM361308  
+- E-mail: RM361308@fiap.com.br  
+- Discord: rafaelnicoletti_  
+- GitHub: https://github.com/RafaelNicoletti  
 
----
-
-### Passo 6 – Encerrar o ambiente
-```powershell
-kubectl delete namespace agrosolutions-local
-```
+### ????? Valber Martins  
+- Matr�cula: RM360859  
+- E-mail: RM360859@fiap.com.br  
+- Discord: valberdev  
+- GitHub: https://github.com/ValberX21  
 
 ---
 
-## Considerações Finais
+## ?? Considera��es Finais
 
-Este projeto foi estruturado com foco em **boas práticas de arquitetura e DevOps**, priorizando:
-- Clareza arquitetural
-- Padronização
-- Facilidade de avaliação e execução local
-- Aderência a cenários reais de mercado
+A AgroSolutions representa um **MVP s�lido de agricultura de precis�o**, aplicando conceitos modernos de arquitetura de software, cloud-native e DevOps, com foco em escalabilidade, observabilidade e boas pr�ticas.
 
-Ele demonstra, de forma prática, como construir, empacotar, orquestrar e executar uma solução moderna baseada em microsserviços no ecossistema .NET.
-
----
-
-**AgroSolutions – Arquitetura, Cloud e Engenharia de Software aplicadas ao Agronegócio**
+**FIAP � Hackathon 8NETT | Grupo 21**
