@@ -19,7 +19,12 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.0" />
       <PackageReference Include="Dapper" Version="2.1.35" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.2" />
-    <PackageReference Include="RabbitMQ.Client" Version="7.0.0" />
+    <!--
+      RabbitMQ.Client 7.x introduziu mudanças relevantes na API (IModel/CreateModel -> IChannel/CreateChannelAsync etc.).
+      Para manter o publisher síncrono simples e reduzir atrito no MVP, fixamos a versão 6.x.
+      Quando formos evoluir o publisher para o modelo assíncrono do client 7.x, podemos atualizar este package.
+    -->
+    <PackageReference Include="RabbitMQ.Client" Version="6.8.1" />
   </ItemGroup>
 
 </Project>
