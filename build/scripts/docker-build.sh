@@ -39,7 +39,7 @@ for item in "${SERVICES[@]}"; do
   docker build \
     -f "${dockerfile}" \
     -t "${image}" \
-    --build-arg DOTNET_VERSION=8.0 \
+    --build-arg DOTNET_VERSION=10.0 \
     .
 done
 

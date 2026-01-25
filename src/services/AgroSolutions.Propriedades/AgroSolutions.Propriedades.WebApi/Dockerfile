@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.6
 
-ARG DOTNET_VERSION=8.0
+ARG DOTNET_VERSION=10.0
 
 # =========================
 # 1) Build

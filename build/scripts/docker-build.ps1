@@ -42,7 +42,7 @@ foreach ($svc in $services) {
   docker build `
     -f $svc.Dockerfile `
     -t $image `
-    --build-arg DOTNET_VERSION=8.0 `
+    --build-arg DOTNET_VERSION=10.0 `
     .
 
   if ($LASTEXITCODE -ne 0) { throw "Docker build failed for $($svc.Name)" }

@@ -27,3 +27,4 @@ labels:
     env: local
 patchesStrategicMerge:
 - configmap-env-patch.yaml
+- monitoring/service-labels.patch.yaml
