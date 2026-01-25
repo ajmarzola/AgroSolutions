@@ -47,7 +47,7 @@ Este diagrama representa:
 
 A execução local com Docker + Kubernetes (Docker Desktop) está documentada em:
 
-📄 `docs/local/README.md`
+📄 `infra/k8s/README.md`
 
 ---
 
@@ -65,7 +65,14 @@ Documentação detalhada:
 
 ---
 
+## 📚 Documentação
+
+Índice central de documentação:
+
+📄 `docs/README.md`
+
 ## 📂 Estrutura do Repositório (resumo)
+
 
 ```
 src/

@@ -26,6 +26,7 @@ declare -a SERVICES=(
   "analise|src/services/AgroSolutions.Analise/AgroSolutions.Analise.WebApi/Dockerfile"
   "propriedades|src/services/AgroSolutions.Propriedades/AgroSolutions.Propriedades.WebApi/Dockerfile"
   "ingestao|src/services/AgroSolutions.Ingestao/AgroSolutions.Ingestao.WebApi/Dockerfile"
+  "ingestao-simulador|src/services/AgroSolutions.Ingestao/AgroSolutions.Ingestao.Simulador/Dockerfile"
   "usuarios|src/services/AgroSolutions.Usuarios/AgroSolutions.Usuarios.WebApi/Dockerfile"
 )
 

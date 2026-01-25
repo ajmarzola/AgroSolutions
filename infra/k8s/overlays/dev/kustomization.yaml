@@ -15,6 +15,9 @@ images:
 - name: ingestao
   newName: ghcr.io/agrosolutions/ingestao
   newTag: dev
+- name: ingestao-simulador
+  newName: ghcr.io/agrosolutions/ingestao-simulador
+  newTag: dev
 - name: propriedades
   newName: ghcr.io/agrosolutions/propriedades
   newTag: dev

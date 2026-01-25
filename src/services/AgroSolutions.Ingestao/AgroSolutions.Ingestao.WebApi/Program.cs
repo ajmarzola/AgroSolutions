@@ -1,15 +1,33 @@
+using AgroSolutions.Ingestao.WebApi.Infrastructure.Mensageria;
+using AgroSolutions.Ingestao.WebApi.Infrastructure.Repositorios;
+using AgroSolutions.Ingestao.WebApi.Infrastructure.SqlServer;
 using OpenTelemetry.Metrics;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
+// Controllers (mantém padrão mais amigável para o time)
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
+// Swagger/OpenAPI
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
+{
+    // JWT será adicionado pelo serviço de Usuários posteriormente.
+    // Mantemos Swagger simples por enquanto.
+});
+
+// Health checks
 builder.Services.AddHealthChecks();
+
+// Options
+builder.Services.Configure<SqlServerOptions>(builder.Configuration.GetSection(SqlServerOptions.SectionName));
+builder.Services.Configure<RabbitMqOptions>(builder.Configuration.GetSection(RabbitMqOptions.SectionName));
+
+// Infra (SQL Server + RabbitMQ)
+builder.Services.AddSingleton(sp => sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<SqlServerOptions>>().Value);
+builder.Services.AddSingleton<ISqlConnectionFactory, SqlConnectionFactory>();
+builder.Services.AddScoped<ILeituraSensorRepositorio, LeituraSensorRepositorio>();
+builder.Services.AddSingleton<IEventoPublisher, RabbitMqEventoPublisher>();
 
 // OpenTelemetry Metrics + Prometheus exporter
 builder.Services.AddOpenTelemetry().WithMetrics(metrics =>
@@ -27,14 +45,14 @@ builder.Services.AddOpenTelemetry().WithMetrics(metrics =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// HTTP pipeline
 app.UseSwagger();
 app.UseSwaggerUI();
 
 // Exponha /metrics para Prometheus (endpoint HTTP)
 app.MapPrometheusScrapingEndpoint("/metrics");
 
-// (Opcional) Health check básico
+// Health endpoints
 app.MapHealthChecks("/health/live");
 app.MapHealthChecks("/health/ready");
 

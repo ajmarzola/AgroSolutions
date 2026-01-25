@@ -6,6 +6,7 @@
   </Folder>
   <Folder Name="/src/services/AgroSolutions.Ingestao/">
     <Project Path="src/services/AgroSolutions.Ingestao/AgroSolutions.Ingestao.WebApi/AgroSolutions.Ingestao.WebApi.csproj" />
+    <Project Path="src/services/AgroSolutions.Ingestao/AgroSolutions.Ingestao.Simulador/AgroSolutions.Ingestao.Simulador.csproj" />
   </Folder>
   <Folder Name="/src/services/AgroSolutions.Propriedades/">
     <Project Path="src/services/AgroSolutions.Propriedades/AgroSolutions.Propriedades.WebApi/AgroSolutions.Propriedades.WebApi.csproj" />
