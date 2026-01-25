@@ -3,6 +3,7 @@ kind: Kustomization
 namespace: agrosolutions-prod
 resources:
 - namespace.yaml
+- monitoring/servicemonitors.yaml
 - ../../base/analise
 - ../../base/propriedades
 - ../../base/ingestao
@@ -27,3 +28,4 @@ labels:
     env: prod
 patchesStrategicMerge:
 - configmap-env-patch.yaml
+- monitoring/service-labels.patch.yaml
