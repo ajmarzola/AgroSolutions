@@ -1,4 +1,5 @@
 <Solution>
-  <Project Path="AgroSolutions.Ingestao.WebApi/AgroSolutions.Ingestao.WebApi.csproj" />
+  <Project Path="../../../tests/AgroSolutions.Ingestao.WebApi.Tests/AgroSolutions.Ingestao.WebApi.Tests.csproj" />
   <Project Path="AgroSolutions.Ingestao.Simulador/AgroSolutions.Ingestao.Simulador.csproj" />
+  <Project Path="AgroSolutions.Ingestao.WebApi/AgroSolutions.Ingestao.WebApi.csproj" />
 </Solution>
