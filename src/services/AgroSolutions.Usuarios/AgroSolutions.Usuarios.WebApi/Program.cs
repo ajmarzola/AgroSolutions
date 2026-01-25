@@ -15,11 +15,11 @@ builder.Services.AddHealthChecks();
 builder.Services.AddOpenTelemetry().WithMetrics(metrics =>
 {
     metrics
-        // Métricas HTTP do ASP.NET Core (latência, contagem, status code, etc.)
+        // MÃ©tricas HTTP do ASP.NET Core (latÃªncia, contagem, status code, etc.)
         .AddAspNetCoreInstrumentation()
-        // Métricas de HttpClient (se a API chama outras APIs)
+        // MÃ©tricas de HttpClient (se a API chama outras APIs)
         .AddHttpClientInstrumentation()
-        // Métricas do runtime .NET (GC, threads, etc.)
+        // MÃ©tricas do runtime .NET (GC, threads, etc.)
         .AddRuntimeInstrumentation()
         // Exporter Prometheus
         .AddPrometheusExporter();
@@ -34,7 +34,7 @@ app.UseSwaggerUI();
 // Exponha /metrics para Prometheus (endpoint HTTP)
 app.MapPrometheusScrapingEndpoint("/metrics");
 
-// (Opcional) Health check básico
+// (Opcional) Health check bÃ¡sico
 app.MapHealthChecks("/health/live");
 app.MapHealthChecks("/health/ready");
 

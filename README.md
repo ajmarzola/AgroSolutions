@@ -1,155 +1,90 @@
-# 🌱 AgroSolutions – Plataforma de Agricultura de Precisão  
-### Hackathon FIAP – 8NETT
+# AgroSolutions 🌱
+
+Plataforma de referência para ingestão, análise e monitoramento de dados agrícolas,
+desenvolvida como projeto acadêmico e técnico, com foco em **arquitetura de microsserviços**, 
+**cloud-native**, **observabilidade** e **boas práticas DevOps**.
 
 ---
 
-## 📌 Visão Geral
+## 🚀 Tecnologias Principais
 
-A **AgroSolutions** é uma plataforma de **Agricultura de Precisão (Agro 4.0)** desenvolvida como **MVP** para o **Hackathon FIAP – 8NETT**.  
-O projeto tem como objetivo apoiar produtores rurais na **tomada de decisão baseada em dados**, utilizando conceitos modernos de **IoT, microsserviços, mensageria, containers, Kubernetes e observabilidade**.
-
-A solução simula a coleta de dados de sensores agrícolas — como **umidade do solo, temperatura e precipitação** — permitindo sua análise, visualização histórica e a geração automática de **alertas inteligentes** para cada talhão.
-
----
-
-## 🎯 Objetivos do Projeto
-
-- Modernizar a gestão agrícola com **dados em tempo (quase) real**
-- Implementar uma **arquitetura de microsserviços desacoplados**
-- Simular a **ingestão de dados de sensores agrícolas**
-- Processar dados e gerar **alertas automáticos**
-- Disponibilizar dados para **dashboards de monitoramento**
-- Demonstrar **orquestração com Kubernetes**
-- Aplicar **boas práticas de arquitetura, segurança e CI/CD**
-- Preparar o ambiente para **observabilidade com Prometheus e Grafana**
-
----
-
-## 🧩 Arquitetura da Solução
-
-A arquitetura foi desenhada seguindo princípios de **cloud-native architecture**, com serviços independentes, comunicação assíncrona e fácil escalabilidade.
-
-### Microsserviços (.NET)
-
-| Serviço | Projeto | Responsabilidade |
-|-------|--------|------------------|
-| Usuários | `AgroSolutions.Usuarios` | Autenticação e autorização de produtores (JWT) |
-| Propriedades | `AgroSolutions.Propriedades` | Cadastro de propriedades, talhões e culturas |
-| Ingestão | `AgroSolutions.Ingestao` | Recebimento e validação de dados simulados de sensores |
-| Análise | `AgroSolutions.Analise` | Processamento dos dados e geração de alertas |
-| Mensageria | RabbitMQ | Comunicação assíncrona entre serviços |
-
----
-
-## 📂 Estrutura de Diretórios
-
-A estrutura do repositório foi organizada para facilitar manutenção, deploy e entendimento arquitetural:
-
-```
-AgroSolutions/
-│
-├── .github/                # Workflows do GitHub Actions (CI/CD)
-├── build/                  # Scripts e configurações de build
-├── docs/                   # Documentação e diagramas
-├── infra/
-│   └── k8s/                # Manifestos Kubernetes
-│
-├── src/
-│   └── services/
-│       ├── AgroSolutions.Analise/        # Serviço de Análise e Alertas
-│       ├── AgroSolutions.Ingestao/       # Serviço de Ingestão de Dados
-│       ├── AgroSolutions.Propriedades/   # Serviço de Propriedades e Talhões
-│       └── AgroSolutions.Usuarios/       # Serviço de Usuários (Auth)
-│
-├── AgroSolutions.slnx       # Solução principal (.NET)
-└── README.md
-```
-
----
-
-## 🛠️ Tecnologias Utilizadas
-
-### Backend
-- **.NET 8 / ASP.NET Core**
-- **JWT Authentication**
-- **Entity Framework Core**
-- **APIs REST**
-
-### Infraestrutura & Containers
+- **.NET 10** (Web APIs)
 - **Docker**
-- **Kubernetes (Docker Desktop – ambiente local)**
-
-### Mensageria
-- **RabbitMQ**
-
-### Observabilidade *(em evolução)*
-- **Prometheus**
-- **Grafana**
-
-### DevOps
-- **GitHub Actions**
-- **Pipelines CI/CD**
-- **Build e versionamento de imagens Docker**
+- **Kubernetes (Kustomize)**
+- **GitHub Actions (CI/CD)**
+- **Prometheus + Grafana (Observabilidade)**
+- **OpenTelemetry**
+- **SQL Server / Dados simulados**
 
 ---
 
-## 📊 Funcionalidades Implementadas (MVP)
+## 🧩 Microsserviços
 
-- ✔ Autenticação do Produtor Rural  
-- ✔ Cadastro de Propriedades e Talhões  
-- ✔ Ingestão de dados simulados de sensores  
-- ✔ Processamento e análise de dados agrícolas  
-- ✔ Geração de alertas automáticos  
-- ✔ Aplicação containerizada com Docker  
-- ✔ Orquestração com Kubernetes local  
+- **Usuários** – Identidade e autenticação
+- **Propriedades** – Cadastro de propriedades e talhões
+- **Ingestão** – Coleta de dados de sensores (simulados)
+- **Análise** – Processamento, métricas e alertas
 
----
-
-## 🚀 Execução do Projeto (Resumo)
-
-**Pré-requisitos**
-- Docker Desktop
-- Kubernetes habilitado
-- kubectl configurado
-- .NET SDK 8
-
-**Fluxo geral**
-1. Build das imagens Docker dos serviços
-2. Aplicação dos manifests Kubernetes
-3. Comunicação entre serviços via RabbitMQ
-4. Serviços disponíveis no cluster local
+Cada serviço é independente, containerizado e orquestrado via Kubernetes.
 
 ---
 
-## 👥 Membros da Equipe – Grupo 21
+## 🗺️ Diagrama de Arquitetura (Miro)
 
-### 👨‍💻 Anderson Marzola  
-- **Matrícula:** RM360850  
-- **E-mail:** RM360850@fiap.com.br  
-- **Discord:** aj.marzola  
-- **GitHub:** https://github.com/ajmarzola  
+O diagrama oficial e atualizado da arquitetura está disponível no Miro:
 
----
+👉 https://miro.com/app/board/uXjVJQ5da0k=/
 
-### 👨‍💻 Rafael Nicoletti  
-- **Matrícula:** RM361308  
-- **E-mail:** RM361308@fiap.com.br  
-- **Discord:** rafaelnicoletti_  
-- **GitHub:** https://github.com/RafaelNicoletti  
+Este diagrama representa:
+- Separação de responsabilidades por microsserviço
+- Fluxo de dados de ingestão → análise
+- Camada de observabilidade
+- Integração com CI/CD e infraestrutura Kubernetes
 
 ---
 
-### 👨‍💻 Valber Martins  
-- **Matrícula:** RM360859  
-- **E-mail:** RM360859@fiap.com.br  
-- **Discord:** valberdev  
-- **GitHub:** https://github.com/ValberX21  
+## 🐳 Execução Local
+
+A execução local com Docker + Kubernetes (Docker Desktop) está documentada em:
+
+📄 `docs/local/README.md`
 
 ---
 
-## 🌾 Considerações Finais
+## 📊 Observabilidade
 
-A **AgroSolutions** entrega um **MVP funcional e arquiteturalmente consistente**, aplicando conceitos modernos de engenharia de software, cloud, containers e DevOps.  
-O projeto está preparado para evolução, incluindo dashboards avançados, observabilidade completa e integração com dados externos.
+A stack de observabilidade local utiliza:
 
-**FIAP – Hackathon 8NETT | Grupo 21**
+- Prometheus (via Prometheus Operator)
+- Grafana (dashboards customizados)
+- OpenTelemetry nos serviços
+
+Documentação detalhada:
+
+📄 `infra/observability/grafana/README.md`
+
+---
+
+## 📂 Estrutura do Repositório (resumo)
+
+```
+src/
+  services/
+infra/
+  k8s/
+  observability/
+docs/
+.github/
+```
+
+---
+
+## 👥 Equipe
+
+Projeto desenvolvido no contexto acadêmico FIAP – Tech Challenge / Hackathon.
+
+---
+
+## 📄 Licença
+
+Projeto de uso educacional.

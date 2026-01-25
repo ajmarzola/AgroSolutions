@@ -1,5 +1,5 @@
 name: AgroSolutions.Usuarios.WebApi CI
-true:
+on:
   push:
     paths:
     - src/services/AgroSolutions.Usuarios/AgroSolutions.Usuarios.WebApi/**
@@ -13,3 +13,4 @@ jobs:
     uses: ./.github/workflows/dotnet-ci-reusable.yml
     with:
       solution_path: AgroSolutions.slnx
+      dotnet_version: "10.0.x"

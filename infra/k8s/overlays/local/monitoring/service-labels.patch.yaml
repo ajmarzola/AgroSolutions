@@ -6,7 +6,7 @@ metadata:
   labels:
     app: usuarios
     monitoring: enabled
-
+---
 apiVersion: v1
 kind: Service
 metadata:
@@ -15,7 +15,7 @@ metadata:
   labels:
     app: propriedades
     monitoring: enabled
-
+---
 apiVersion: v1
 kind: Service
 metadata:
@@ -24,7 +24,7 @@ metadata:
   labels:
     app: ingestao
     monitoring: enabled
-
+---
 apiVersion: v1
 kind: Service
 metadata:
