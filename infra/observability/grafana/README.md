@@ -1,80 +1,78 @@
-# Observabilidade – Grafana (AgroSolutions)
+# Observabilidade – Monitoramento com Grafana 📊
 
-Este diretório contém a documentação para utilização do **Grafana** como ferramenta
-de visualização das métricas coletadas pelo Prometheus.
-
----
-
-## 🧩 Stack Utilizada
-
-- **Prometheus Operator (kube-prometheus-stack)**
-- **Prometheus**
-- **Grafana**
-- **ServiceMonitor (Kubernetes CRD)**
+Este guia orienta como acessar o Grafana, importar os dashboards e visualizar as métricas da aplicação AgroSolutions.
 
 ---
 
 ## ✅ Pré-requisitos
 
-Antes de prosseguir, é necessário ter o stack de observabilidade instalado no cluster.
+1. **Stack de Observabilidade Instalada**:
+   Se você seguiu o [Guia de Execução Kubernetes](../../k8s/README.md), o Prometheus e o Grafana já devem estar instalados via Helm.
+   
+   Caso contrário, instale agora:
+   ```bash
+   helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+   helm repo update
+   helm install kps prometheus-community/kube-prometheus-stack --namespace agrosolutions-observability --create-namespace
+   ```
 
-Exemplo via Helm:
-
-```bash
-helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-helm repo update
-
-helm install kps prometheus-community/kube-prometheus-stack   --namespace agrosolutions-observability   --create-namespace
-```
-
-> O label `release: kps` é utilizado pelos ServiceMonitors do projeto.
-
----
-
-## 📡 Integração com os Serviços
-
-Os microsserviços expõem métricas via endpoint:
-
-```
-/metrics
-```
-
-Cada Service Kubernetes recebe o label:
-
-```yaml
-monitoring: enabled
-```
-
-Os ServiceMonitors selecionam automaticamente esses serviços.
+2. **Serviços Rodando**:
+   A aplicação deve estar rodando no namespace `agrosolutions-local` para gerar métricas.
 
 ---
 
-## 📊 Dashboards
+## 🚀 Acessando o Grafana
 
-Após acessar o Grafana (porta padrão 3000):
+Para acessar o painel, precisamos redirecionar a porta do serviço Kubernetes para sua máquina local.
 
-- Importar dashboards customizados (JSON)
-- Utilizar o datasource Prometheus configurado automaticamente
+1. **Realizar Port-Forward**:
+   Execute o seguinte comando no terminal:
+   ```bash
+   # O nome do serviço geralmente é 'kps-grafana' (dado o release name 'kps')
+   kubectl port-forward svc/kps-grafana 3000:80 -n agrosolutions-observability
+   ```
+   *(Mantenha este terminal aberto enquanto usa o Grafana)*
 
-Credenciais padrão (local):
-- Usuário: `admin`
-- Senha: `prom-operator`
-
----
-
-## 🔍 Validação
-
-Verificar se os targets estão ativos:
-
-- Grafana → Explore → Prometheus
-- Prometheus UI → Status → Targets
+2. **Fazer Login**:
+   - Abra o navegador em: [http://localhost:3000](http://localhost:3000)
+   - **Usuário**: `admin`
+   - **Senha**: `prom-operator`
 
 ---
 
-## ℹ️ Observações
+## 📈 Configurando Dashboards
 
-- Esta configuração é voltada para **ambiente local**
-- Para produção, recomenda-se:
-  - Autenticação no Grafana
-  - Persistência de dados
-  - TLS e RBAC refinado
+O projeto já possui dashboards pré-configurados. Siga os passos para importá-los:
+
+1. **Localizar os Arquivos JSON**:
+   Os arquivos de dashboard estão na pasta:
+   `infra/observability/grafana/dashboards/`
+   
+   - Exemplo: `agrosolutions-apis-prometheus.json`
+
+2. **Importar no Grafana**:
+   - No menu lateral esquerdo, clique em **Dashboards** (ícone de quatro quadrados) -> **New** -> **Import**.
+   - Clique em **"Upload dashboard JSON file"**.
+   - Navegue até a pasta `infra/observability/grafana/dashboards/` no seu repositório clonado.
+   - Selecione o arquivo `.json`.
+   - Selecione o **DataSource** (geralmente `Prometheus` já configurado automaticamente).
+   - Clique em **Import**.
+
+---
+
+## 👁️ Acompanhando a Execução
+
+Após importar, você verá métricas em tempo real.
+
+### O que observar?
+- **Requisições por Segundo (RPS)**: Indica o tráfego chegando nas APIs (Ingestão, Análise, etc).
+- **Latência**: Tempo de resposta dos serviços.
+- **Métricas de Negócio (Simuladas)**:
+  - O serviço `Ingestao.Simulador` envia dados constantemente.
+  - Verifique se os contadores de "dados recebidos" aumentam no dashboard.
+
+### Troubleshooting
+- **Dashboard Vazio?**:
+  - Verifique se os pods da aplicação estão rodando (`kubectl get pods -n agrosolutions-local`).
+  - Verifique se o `ServiceMonitor` foi aplicado (`kubectl get servicemonitors -n agrosolutions-local`).
+  - Aguarde alguns minutos para a coleta de métricas.

@@ -6,15 +6,29 @@ desenvolvida como projeto acadêmico e técnico, com foco em **arquitetura de mi
 
 ---
 
-## 🚀 Tecnologias Principais
+## 🛠️ Tecnologias Utilizadas
 
-- **.NET 10** (Web APIs)
+### Backend
+- **.NET 8 / ASP.NET Core**
+- **JWT Authentication**
+- **Entity Framework Core**
+- **APIs REST**
+
+### Infraestrutura & Containers
 - **Docker**
-- **Kubernetes (Kustomize)**
-- **GitHub Actions (CI/CD)**
-- **Prometheus + Grafana (Observabilidade)**
-- **OpenTelemetry**
-- **SQL Server / Dados simulados**
+- **Kubernetes (Docker Desktop – ambiente local)**
+
+### Mensageria
+- **RabbitMQ**
+
+### Observabilidade *(em evolução)*
+- **Prometheus**
+- **Grafana**
+
+### DevOps
+- **GitHub Actions**
+- **Pipelines CI/CD**
+- **Build e versionamento de imagens Docker**
 
 ---
 
@@ -26,6 +40,18 @@ desenvolvida como projeto acadêmico e técnico, com foco em **arquitetura de mi
 - **Análise** – Processamento, métricas e alertas
 
 Cada serviço é independente, containerizado e orquestrado via Kubernetes.
+
+---
+
+## 📊 Funcionalidades Implementadas (MVP)
+
+- ✔ Autenticação do Produtor Rural  
+- ✔ Cadastro de Propriedades e Talhões  
+- ✔ Ingestão de dados simulados de sensores  
+- ✔ Processamento e análise de dados agrícolas  
+- ✔ Geração de alertas automáticos  
+- ✔ Aplicação containerizada com Docker  
+- ✔ Orquestração com Kubernetes local  
 
 ---
 
@@ -43,52 +69,55 @@ Este diagrama representa:
 
 ---
 
-## 🐳 Execução Local
+## 📚 Índice & Tutoriais
 
-A execução local com Docker + Kubernetes (Docker Desktop) está documentada em:
+Siga os guias abaixo para configurar, executar e monitorar o projeto em seu ambiente local:
 
-📄 `infra/k8s/README.md`
+1. **🚀 Guia de Execução (Kubernetes)**
+   - 📄 [infra/k8s/README.md](infra/k8s/README.md)
+   - *Instruções passo-a-passo para subir a stack completa no Docker Desktop.*
 
----
+2. **📊 Observabilidade (Grafana)**
+   - 📄 [infra/observability/grafana/README.md](infra/observability/grafana/README.md)
+   - *Como importar dashboards e acompanhar métricas.*
 
-## 📊 Observabilidade
+3. **📘 Documentação do Projeto**
+   - 📄 [docs/README.md](docs/README.md)
+   - *Detalhes arquiteturais e especificações.*
 
-A stack de observabilidade local utiliza:
-
-- Prometheus (via Prometheus Operator)
-- Grafana (dashboards customizados)
-- OpenTelemetry nos serviços
-
-Documentação detalhada:
-
-📄 `infra/observability/grafana/README.md`
-
----
-
-## 📚 Documentação
-
-Índice central de documentação:
-
-📄 `docs/README.md`
-
-## 📂 Estrutura do Repositório (resumo)
-
+## 📂 Estrutura do Repositório
 
 ```
-src/
-  services/
-infra/
-  k8s/
-  observability/
-docs/
-.github/
+src/             # Código fonte dos microsserviços (APIs)
+infra/           # Infraestrutura como Código
+  k8s/           # Manifestos Kubernetes (Base + Overlays)
+  observability/ # Configs de monitoramento (Grafana/Prometheus)
+build/           # Scripts de automação (build, deploy)
+docs/            # Documentação técnica
+.github/         # Workflows do GitHub Actions
 ```
 
 ---
 
-## 👥 Equipe
+## 👥 Membros da Equipe – Grupo 21
 
-Projeto desenvolvido no contexto acadêmico FIAP – Tech Challenge / Hackathon.
+### 👨‍💻 Anderson Marzola  
+- **Matrícula:** RM360850  
+- **E-mail:** RM360850@fiap.com.br  
+- **Discord:** aj.marzola  
+- **GitHub:** https://github.com/ajmarzola  
+
+### 👨‍💻 Rafael Nicoletti  
+- **Matrícula:** RM361308  
+- **E-mail:** RM361308@fiap.com.br  
+- **Discord:** rafaelnicoletti_  
+- **GitHub:** https://github.com/RafaelNicoletti  
+
+### 👨‍💻 Valber Martins  
+- **Matrícula:** RM360859  
+- **E-mail:** RM360859@fiap.com.br  
+- **Discord:** valberdev  
+- **GitHub:** https://github.com/ValberX21  
 
 ---
 
