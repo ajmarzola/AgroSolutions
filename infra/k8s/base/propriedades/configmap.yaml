@@ -7,4 +7,4 @@ metadata:
     app.kubernetes.io/part-of: agrosolutions-platform
 data:
   Logging__LogLevel__Default: Information
-  Identity__BaseUrl: http://usuarios
+  Identity__BaseUrl: http://propriedades
