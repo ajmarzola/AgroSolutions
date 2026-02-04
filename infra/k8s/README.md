@@ -102,8 +102,10 @@ Utilize `port-forward` para expor as portas para seu `localhost`.
 
 | Serviço | Porta Interna | Comando (Exemplo) | URL |
 |---------|---------------|-------------------|-----|
-| **Usuários** | 80 | `kubectl port-forward svc/usuarios 8080:80 -n agrosolutions-local` | [http://localhost:8080/swagger](http://localhost:8080/swagger) |
-| **Ingestão** | 80 | `kubectl port-forward svc/ingestao 8081:80 -n agrosolutions-local` | [http://localhost:8081/swagger](http://localhost:8081/swagger) |
+| **Usuários** | 80 | `kubectl port-forward svc/usuarios 8081:80 -n agrosolutions-local` | [http://localhost:8081/swagger](http://localhost:8081/swagger) |
+| **Propriedades** | 80 | `kubectl port-forward svc/ingestao 8082:80 -n agrosolutions-local` | [http://localhost:8082/swagger](http://localhost:8082/swagger) |
+| **Ingestão** | 80 | `kubectl port-forward svc/ingestao 8083:80 -n agrosolutions-local` | [http://localhost:8083/swagger](http://localhost:8083/swagger) |
+| **Ingestão** | 80 | `kubectl port-forward svc/ingestao 8084:80 -n agrosolutions-local` | [http://localhost:8084/swagger](http://localhost:8084/swagger) |
 | **Grafana** | 80 (ou 3000) | Consultar documentação específica | [Ver Docs Grafana](../observability/grafana/README.md) |
 
 ---
