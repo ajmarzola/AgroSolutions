@@ -1,8 +1,18 @@
+using AgroSolutions.Usuarios.WebApi.Data;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using OpenTelemetry.Metrics;
+using System.Text;
+
 var builder = WebApplication.CreateBuilder(args);
 
+// 1. Banco de Dados Azure SQL
 var conn = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<AgroDbContext>(options => options.UseSqlServer(conn));
 
+// 2. AutenticaÁ„o JWT
 var jwtKey = builder.Configuration["Jwt:Key"] ?? "Chave_Mestra_AgroSolutions_2026_Seguranca_Total";
 var key = Encoding.ASCII.GetBytes(jwtKey);
 
@@ -14,10 +24,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKey = new SymmetricSecurityKey(key),
             ValidateIssuer = false,
             ValidateAudience = false,
-           // ClockSkew = TimeSpan.Zero // Valida√ß√£o imediata da expira√ß√£o
+            ClockSkew = TimeSpan.Zero
         };
     });
 
+// 3. Observabilidade (Health Checks)
 builder.Services.AddHealthChecks()
     .AddCheck("DatabaseConnection", () => {
         try
@@ -31,38 +42,42 @@ builder.Services.AddHealthChecks()
         }
     });
 
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
-builder.Services.AddHealthChecks();
-
-// OpenTelemetry Metrics + Prometheus exporter
+// 4. Observabilidade (OpenTelemetry + Prometheus)
 builder.Services.AddOpenTelemetry().WithMetrics(metrics =>
 {
     metrics
-        // M√©tricas HTTP do ASP.NET Core (lat√™ncia, contagem, status code, etc.)
         .AddAspNetCoreInstrumentation()
-        // M√©tricas de HttpClient (se a API chama outras APIs)
         .AddHttpClientInstrumentation()
-        // M√©tricas do runtime .NET (GC, threads, etc.)
         .AddRuntimeInstrumentation()
-        // Exporter Prometheus
         .AddPrometheusExporter();
 });
 
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+
+// ConfiguraÁ„o do Swagger para .NET 9
+builder.Services.AddSwaggerGen(c => {
+    c.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "AgroSolutions API",
+        Version = "v1",
+        Description = "MicrosserviÁo de Usu·rios"
+    });
+});
+
+builder.Services.AddAuthorization();
+
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Pipeline do Swagger
 app.UseSwagger();
-app.UseSwaggerUI();
+app.UseSwaggerUI(c => {
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "AgroSolutions API v1");
+});
 
-// Exponha /metrics para Prometheus (endpoint HTTP)
-app.MapPrometheusScrapingEndpoint("/metrics");
-
-// (Opcional) Health check b√°sico
-app.MapHealthChecks("/health/live");
-app.MapHealthChecks("/health/ready");
+// Monitoramento
+app.MapHealthChecks("/health");
+app.UseOpenTelemetryPrometheusScrapingEndpoint();
 
 app.UseAuthentication();
 app.UseAuthorization();
