@@ -1,0 +1,22 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: agrosolutions-apis
+  namespace: agrosolutions-observability
+  labels:
+    release: kps
+spec:
+  namespaceSelector:
+    matchNames:
+      - agrosolutions-local
+
+  selector:
+    matchLabels:
+      monitoring: enabled
+      app.kubernetes.io/part-of: agrosolutions-platform
+
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 15s
+      scrapeTimeout: 10s

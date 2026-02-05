@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ENVIRONMENT="${1:-local}"     # local|dev|prod
-REGISTRY="${2:-ghcr.io/sua-org}"
+REGISTRY="${2:-ghcr.io/agrosolutions}"
 TAG="${3:-}"
 
 git_sha() {
@@ -17,7 +17,7 @@ if [[ -z "${TAG}" ]]; then
   case "${ENVIRONMENT}" in
     local) TAG="local" ;;
     dev)   TAG="dev" ;;
-    prod)  TAG="1.0.0" ;; # ou exigir TAG
+    prod)  TAG="1.0.0" ;; # Em produção, prefira informar TAG explicitamente
     *)     TAG="local" ;;
   esac
 fi
@@ -39,7 +39,7 @@ for item in "${SERVICES[@]}"; do
   docker build \
     -f "${dockerfile}" \
     -t "${image}" \
-    --build-arg DOTNET_VERSION=8.0 \
+    --build-arg DOTNET_VERSION=10.0 \
     .
 done
 

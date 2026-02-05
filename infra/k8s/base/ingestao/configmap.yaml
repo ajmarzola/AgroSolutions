@@ -6,7 +6,5 @@ metadata:
     app.kubernetes.io/name: ingestao
     app.kubernetes.io/part-of: agrosolutions-platform
 data:
-  ASPNETCORE_ENVIRONMENT: "Production"
-  Logging__LogLevel__Default: "Information"
-  # Exemplo de config de downstream:
-  Identity__BaseUrl: "http://ingestao.default.svc.cluster.local"
+  Logging__LogLevel__Default: Information
+  Identity__BaseUrl: http://usuarios

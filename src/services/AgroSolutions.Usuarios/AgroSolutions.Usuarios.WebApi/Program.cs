@@ -1,9 +1,3 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
-using AgroSolutions.Usuarios.WebApi.Data;
-
 var builder = WebApplication.CreateBuilder(args);
 
 var conn = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -20,7 +14,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKey = new SymmetricSecurityKey(key),
             ValidateIssuer = false,
             ValidateAudience = false,
-           // ClockSkew = TimeSpan.Zero // Valida��o imediata da expira��o
+           // ClockSkew = TimeSpan.Zero // Validação imediata da expiração
         };
     });
 
@@ -41,15 +35,34 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddHealthChecks();
+
+// OpenTelemetry Metrics + Prometheus exporter
+builder.Services.AddOpenTelemetry().WithMetrics(metrics =>
+{
+    metrics
+        // Métricas HTTP do ASP.NET Core (latência, contagem, status code, etc.)
+        .AddAspNetCoreInstrumentation()
+        // Métricas de HttpClient (se a API chama outras APIs)
+        .AddHttpClientInstrumentation()
+        // Métricas do runtime .NET (GC, threads, etc.)
+        .AddRuntimeInstrumentation()
+        // Exporter Prometheus
+        .AddPrometheusExporter();
+});
+
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+// Configure the HTTP request pipeline.
+app.UseSwagger();
+app.UseSwaggerUI();
 
-app.MapHealthChecks("/health");
+// Exponha /metrics para Prometheus (endpoint HTTP)
+app.MapPrometheusScrapingEndpoint("/metrics");
+
+// (Opcional) Health check básico
+app.MapHealthChecks("/health/live");
+app.MapHealthChecks("/health/ready");
 
 app.UseAuthentication();
 app.UseAuthorization();

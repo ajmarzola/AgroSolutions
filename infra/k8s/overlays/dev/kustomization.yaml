@@ -1,39 +1,31 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-
 namespace: agrosolutions-dev
-
 resources:
-  - namespace.yaml
-  - ../../base/analise
-  - ../../base/propriedades
-  - ../../base/ingestao
-  - ../../base/usuarios
-
-commonLabels:
-  app.kubernetes.io/part-of: agrosolutions-platform
-  app.kubernetes.io/managed-by: kustomize
-  env: dev
-
+- namespace.yaml
+- monitoring/servicemonitors.yaml
+- ../../base/analise
+- ../../base/propriedades
+- ../../base/ingestao
+- ../../base/usuarios
 images:
-  - name: analise
-    newName: ghcr.io/agrosolutions/analise
-    newTag: dev
-  - name: propriedades
-    newName: ghcr.io/agrosolutions/propriedades
-    newTag: dev
-  - name: ingestao
-    newName: ghcr.io/agrosolutions/ingestao
-    newTag: dev
-  - name: usuarios
-    newName: ghcr.io/agrosolutions/usuarios
-    newTag: dev
-
-# Exemplo: patch para aumentar replicas em dev
-# patches:
-#   - target:
-#       kind: Deployment
-#     patch: |-
-#       - op: replace
-#         path: /spec/replicas
-#         value: 2
+- name: analise
+  newName: ghcr.io/agrosolutions/analise
+  newTag: dev
+- name: ingestao
+  newName: ghcr.io/agrosolutions/ingestao
+  newTag: dev
+- name: propriedades
+  newName: ghcr.io/agrosolutions/propriedades
+  newTag: dev
+- name: usuarios
+  newName: ghcr.io/agrosolutions/usuarios
+  newTag: dev
+labels:
+- pairs:
+    app.kubernetes.io/part-of: agrosolutions-platform
+    app.kubernetes.io/managed-by: kustomize
+    env: dev
+patchesStrategicMerge:
+- configmap-env-patch.yaml
+- monitoring/service-labels.patch.yaml

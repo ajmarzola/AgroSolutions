@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: usuarios
+  namespace: agrosolutions-prod
+  labels:
+    monitoring: enabled
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: propriedades
+  namespace: agrosolutions-prod
+  labels:
+    monitoring: enabled
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ingestao
+  namespace: agrosolutions-prod
+  labels:
+    monitoring: enabled
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: analise
+  namespace: agrosolutions-prod
+  labels:
+    monitoring: enabled

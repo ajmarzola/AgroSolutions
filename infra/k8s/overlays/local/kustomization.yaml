@@ -1,39 +1,31 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-
 namespace: agrosolutions-local
-
 resources:
-  - namespace.yaml
-  - ../../base/analise
-  - ../../base/ingestao
-  - ../../base/propriedades
-  - ../../base/usuarios
-
-commonLabels:
-  app.kubernetes.io/part-of: agrosolutions-platform
-  app.kubernetes.io/managed-by: kustomize
-  env: local
-
+- namespace.yaml
+- ../../base/analise
+- ../../base/ingestao
+- ../../base/propriedades
+- ../../base/usuarios
+- monitoring/servicemonitors.yaml
 images:
-  - name: analise
-    newName: ghcr.io/agrosolutions/analise
-    newTag: local
-  - name: propriedades
-    newName: ghcr.io/agrosolutions/propriedades
-    newTag: local
-  - name: ingestao
-    newName: ghcr.io/agrosolutions/ingestao
-    newTag: local
-  - name: usuarios
-    newName: ghcr.io/agrosolutions/usuarios
-    newTag: local
-
-# Patches opcionais (ex.: reduzir replicas, desabilitar HPA, etc.)
-# patches:
-#   - target:
-#       kind: Deployment
-#     patch: |-
-#       - op: replace
-#         path: /spec/replicas
-#         value: 1
+- name: analise
+  newName: ghcr.io/agrosolutions/analise
+  newTag: local
+- name: ingestao
+  newName: ghcr.io/agrosolutions/ingestao
+  newTag: local
+- name: propriedades
+  newName: ghcr.io/agrosolutions/propriedades
+  newTag: local
+- name: usuarios
+  newName: ghcr.io/agrosolutions/usuarios
+  newTag: local
+labels:
+- pairs:
+    app.kubernetes.io/part-of: agrosolutions-platform
+    app.kubernetes.io/managed-by: kustomize
+    env: local
+patchesStrategicMerge:
+- configmap-env-patch.yaml
+- monitoring/service-labels.patch.yaml

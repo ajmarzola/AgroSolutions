@@ -22,7 +22,7 @@ spec:
         runAsNonRoot: true
       containers:
         - name: analise
-          image: ghcr.io/agrosolutions/analise:1.0.0
+          image: analise
           imagePullPolicy: IfNotPresent
           ports:
             - name: http

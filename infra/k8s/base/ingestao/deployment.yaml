@@ -22,7 +22,7 @@ spec:
         runAsNonRoot: true
       containers:
         - name: ingestao
-          image: ghcr.io/agrosolutions/ingestao:1.0.0
+          image: ingestao
           imagePullPolicy: IfNotPresent
           ports:
             - name: http

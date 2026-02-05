@@ -22,7 +22,7 @@ spec:
         runAsNonRoot: true
       containers:
         - name: usuarios
-          image: ghcr.io/agrosolutions/usuarios:1.0.0
+          image: usuarios
           imagePullPolicy: IfNotPresent
           ports:
             - name: http

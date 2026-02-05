@@ -1,35 +1,31 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-
 namespace: agrosolutions-prod
-
 resources:
-  - namespace.yaml
-  - ../../base/analise
-  - ../../base/propriedades
-  - ../../base/ingestao
-  - ../../base/usuarios
-
-commonLabels:
-  app.kubernetes.io/part-of: agrosolutions-platform
-  app.kubernetes.io/managed-by: kustomize
-  env: prod
-
+- namespace.yaml
+- monitoring/servicemonitors.yaml
+- ../../base/analise
+- ../../base/propriedades
+- ../../base/ingestao
+- ../../base/usuarios
 images:
-  - name: analise
-    newName: ghcr.io/agrosolutions/analise
-    newTag: "1.0.0"
-  - name: propriedades
-    newName: ghcr.io/agrosolutions/propriedades
-    newTag: "1.0.0"
-  - name: ingestao
-    newName: ghcr.io/agrosolutions/ingestao
-    newTag: "1.0.0"
-  - name: usuarios
-    newName: ghcr.io/agrosolutions/usuarios
-    newTag: "1.0.0"
-
-# Recomendações típicas em prod:
-# - patches para replicas >= 2
-# - resource limits mais altos, requests ajustados
-# - PodDisruptionBudget, HPA, NetworkPolicy, etc.
+- name: analise
+  newName: ghcr.io/agrosolutions/analise
+  newTag: 1.0.0
+- name: ingestao
+  newName: ghcr.io/agrosolutions/ingestao
+  newTag: 1.0.0
+- name: propriedades
+  newName: ghcr.io/agrosolutions/propriedades
+  newTag: 1.0.0
+- name: usuarios
+  newName: ghcr.io/agrosolutions/usuarios
+  newTag: 1.0.0
+labels:
+- pairs:
+    app.kubernetes.io/part-of: agrosolutions-platform
+    app.kubernetes.io/managed-by: kustomize
+    env: prod
+patchesStrategicMerge:
+- configmap-env-patch.yaml
+- monitoring/service-labels.patch.yaml

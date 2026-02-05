@@ -21,7 +21,8 @@ if ([string]::IsNullOrWhiteSpace($Tag)) {
   switch ($Environment) {
     "local" { $Tag = "local" }
     "dev"   { $Tag = "dev" }
-    "prod"  { $Tag = "1.0.0" } # ou: throw "Em prod, informe -Tag"
+    "prod"  { $Tag = "1.0.0" }  # Em produção, prefira informar -Tag explicitamente
+    default { $Tag = "local" }
   }
 }
 
@@ -41,7 +42,7 @@ foreach ($svc in $services) {
   docker build `
     -f $svc.Dockerfile `
     -t $image `
-    --build-arg DOTNET_VERSION=8.0 `
+    --build-arg DOTNET_VERSION=10.0 `
     .
 
   if ($LASTEXITCODE -ne 0) { throw "Docker build failed for $($svc.Name)" }
