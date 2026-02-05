@@ -25,9 +25,28 @@ builder.Services.Configure<RabbitMqOptions>(builder.Configuration.GetSection(Rab
 
 // Infra (SQL Server + RabbitMQ)
 builder.Services.AddSingleton(sp => sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<SqlServerOptions>>().Value);
-builder.Services.AddSingleton<ISqlConnectionFactory, SqlConnectionFactory>();
-builder.Services.AddScoped<ILeituraSensorRepositorio, LeituraSensorRepositorio>();
-builder.Services.AddSingleton<IEventoPublisher, RabbitMqEventoPublisher>();
+
+var sqlOptions = builder.Configuration.GetSection(SqlServerOptions.SectionName).Get<SqlServerOptions>() ?? new SqlServerOptions();
+var rabbitOptions = builder.Configuration.GetSection(RabbitMqOptions.SectionName).Get<RabbitMqOptions>() ?? new RabbitMqOptions();
+
+if (sqlOptions.UseInMemory)
+{
+    builder.Services.AddSingleton<ILeituraSensorRepositorio, InMemoryLeituraSensorRepositorio>();
+}
+else
+{
+    builder.Services.AddSingleton<ISqlConnectionFactory, SqlConnectionFactory>();
+    builder.Services.AddScoped<ILeituraSensorRepositorio, LeituraSensorRepositorio>();
+}
+
+if (rabbitOptions.Enabled)
+{
+    builder.Services.AddSingleton<IEventoPublisher, RabbitMqEventoPublisher>();
+}
+else
+{
+    builder.Services.AddSingleton<IEventoPublisher, NoopEventoPublisher>();
+}
 
 // OpenTelemetry Metrics + Prometheus exporter
 builder.Services.AddOpenTelemetry().WithMetrics(metrics =>
@@ -60,4 +79,4 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.Run();
+await app.RunAsync();

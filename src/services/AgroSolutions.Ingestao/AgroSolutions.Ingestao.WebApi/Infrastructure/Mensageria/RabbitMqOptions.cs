@@ -4,6 +4,8 @@ public sealed class RabbitMqOptions
 {
     public const string SectionName = "RabbitMq";
 
+    public bool Enabled { get; init; } = true;
+
     public string HostName { get; init; } = "localhost";
     public int Port { get; init; } = 5672;
     public string UserName { get; init; } = "guest";

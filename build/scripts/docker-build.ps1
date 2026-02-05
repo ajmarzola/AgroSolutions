@@ -30,6 +30,7 @@ $services = @(
   @{ Name = "analise";  Dockerfile = "src/services/AgroSolutions.Analise/AgroSolutions.Analise.WebApi/Dockerfile" },
   @{ Name = "propriedades";  Dockerfile = "src/services/AgroSolutions.Propriedades/AgroSolutions.Propriedades.WebApi/Dockerfile" },
   @{ Name = "ingestao"; Dockerfile = "src/services/AgroSolutions.Ingestao/AgroSolutions.Ingestao.WebApi/Dockerfile" },
+  @{ Name = "ingestao-simulador"; Dockerfile = "src/services/AgroSolutions.Ingestao/AgroSolutions.Ingestao.Simulador/Dockerfile" },
   @{ Name = "usuarios";  Dockerfile = "src/services/AgroSolutions.Usuarios/AgroSolutions.Usuarios.WebApi/Dockerfile" }
 )
 

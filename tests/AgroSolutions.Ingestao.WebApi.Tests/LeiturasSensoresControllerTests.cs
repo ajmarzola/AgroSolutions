@@ -7,6 +7,7 @@ using AgroSolutions.Ingestao.WebApi.Infrastructure.Repositorios;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Xunit;
 
@@ -14,21 +15,21 @@ namespace AgroSolutions.Ingestao.WebApi.Tests;
 
 public class LeiturasSensoresControllerTests
 {
+    private const string OrigemTeste = "teste";
     private readonly Mock<ILeituraSensorRepositorio> _repositorioMock;
     private readonly Mock<IEventoPublisher> _publisherMock;
-    private readonly Mock<ILogger<LeiturasSensoresController>> _loggerMock;
     private readonly LeiturasSensoresController _controller;
 
     public LeiturasSensoresControllerTests()
     {
         _repositorioMock = new Mock<ILeituraSensorRepositorio>();
         _publisherMock = new Mock<IEventoPublisher>();
-        _loggerMock = new Mock<ILogger<LeiturasSensoresController>>();
+        var logger = NullLogger<LeiturasSensoresController>.Instance;
 
         _controller = new LeiturasSensoresController(
             _repositorioMock.Object,
             _publisherMock.Object,
-            _loggerMock.Object);
+            logger);
     }
 
     [Fact]
@@ -37,6 +38,10 @@ public class LeiturasSensoresControllerTests
         // Arrange
         var request = new CriarLeituraSensorRequest
         {
+            IdPropriedade = Guid.NewGuid(),
+            IdTalhao = Guid.NewGuid(),
+            Origem = OrigemTeste,
+            DataHoraCapturaUtc = DateTime.UtcNow,
             Metricas = new MetricasSensorRequest
             {
                 UmidadeSoloPercentual = null,
@@ -62,7 +67,7 @@ public class LeiturasSensoresControllerTests
         {
             IdPropriedade = Guid.NewGuid(),
             IdTalhao = Guid.NewGuid(),
-            Origem = "teste",
+            Origem = OrigemTeste,
             DataHoraCapturaUtc = DateTime.UtcNow,
             Metricas = new MetricasSensorRequest
             {
@@ -114,7 +119,7 @@ public class LeiturasSensoresControllerTests
 
         // Assert
         var badRequestResult = Assert.IsType<BadRequestObjectResult>(result.Result);
-        Assert.Equal("idTalhao È obrigatÛrio.", badRequestResult.Value);
+        Assert.Equal("idTalhao √© obrigat√≥rio.", badRequestResult.Value);
     }
 
     [Fact]
@@ -125,7 +130,7 @@ public class LeiturasSensoresControllerTests
 
         // Assert
         var badRequestResult = Assert.IsType<BadRequestObjectResult>(result.Result);
-        Assert.Equal("Intervalo inv·lido. Informe deUtc e ateUtc (ateUtc > deUtc).", badRequestResult.Value);
+        Assert.Equal("Intervalo inv√°lido. Informe deUtc e ateUtc (ateUtc > deUtc).", badRequestResult.Value);
     }
 
     [Fact]
@@ -140,7 +145,7 @@ public class LeiturasSensoresControllerTests
 
         // Assert
         var badRequestResult = Assert.IsType<BadRequestObjectResult>(result.Result);
-        Assert.Equal("Intervalo inv·lido. Informe deUtc e ateUtc (ateUtc > deUtc).", badRequestResult.Value);
+        Assert.Equal("Intervalo inv√°lido. Informe deUtc e ateUtc (ateUtc > deUtc).", badRequestResult.Value);
     }
 
     [Fact]
@@ -195,6 +200,87 @@ public class LeiturasSensoresControllerTests
         // Assert
         Assert.IsType<CreatedAtActionResult>(result);
         _repositorioMock.Verify(x => x.InserirAsync(It.Is<LeituraSensor>(l => l.IdDispositivo == null && l.CorrelationId == null), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task CriarAsync_DeveDefinirDataHoraComoUtc()
+    {
+        // Arrange
+        var request = new CriarLeituraSensorRequest
+        {
+            IdPropriedade = Guid.NewGuid(),
+            IdTalhao = Guid.NewGuid(),
+            Origem = OrigemTeste,
+            DataHoraCapturaUtc = new DateTime(2026, 2, 5, 10, 0, 0, DateTimeKind.Local),
+            Metricas = new MetricasSensorRequest
+            {
+                UmidadeSoloPercentual = 55
+            }
+        };
+
+        LeituraSensor? leituraInserida = null;
+
+        _repositorioMock
+            .Setup(x => x.InserirAsync(It.IsAny<LeituraSensor>(), It.IsAny<CancellationToken>()))
+            .Callback<LeituraSensor, CancellationToken>((leitura, _) => leituraInserida = leitura)
+            .ReturnsAsync(10);
+
+        // Act
+        await _controller.CriarAsync(request, CancellationToken.None);
+
+        // Assert
+        Assert.NotNull(leituraInserida);
+        Assert.Equal(DateTimeKind.Utc, leituraInserida!.DataHoraCapturaUtc.Kind);
+    }
+
+    [Fact]
+    public async Task CriarAsync_DeveLancarExcecao_QuandoRepositorioFalhar()
+    {
+        // Arrange
+        var request = new CriarLeituraSensorRequest
+        {
+            IdPropriedade = Guid.NewGuid(),
+            IdTalhao = Guid.NewGuid(),
+            Origem = OrigemTeste,
+            DataHoraCapturaUtc = DateTime.UtcNow,
+            Metricas = new MetricasSensorRequest
+            {
+                TemperaturaCelsius = 21
+            }
+        };
+
+        _repositorioMock
+            .Setup(x => x.InserirAsync(It.IsAny<LeituraSensor>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Falha no reposit√≥rio"));
+
+        // Act + Assert
+        await Assert.ThrowsAsync<InvalidOperationException>(() => _controller.CriarAsync(request, CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task ConsultarAsync_DevePassarAgruparMinutosParaRepositorio()
+    {
+        // Arrange
+        var idTalhao = Guid.NewGuid();
+        var de = new DateTime(2026, 2, 5, 0, 0, 0, DateTimeKind.Local);
+        var ate = de.AddHours(1);
+        const int agruparMinutos = 15;
+
+        _repositorioMock
+            .Setup(x => x.ConsultarAsync(idTalhao, It.IsAny<DateTime>(), It.IsAny<DateTime>(), agruparMinutos, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<LeituraSensor>());
+
+        // Act
+        var result = await _controller.ConsultarAsync(idTalhao, de, ate, agruparMinutos, CancellationToken.None);
+
+        // Assert
+        Assert.IsType<OkObjectResult>(result.Result);
+        _repositorioMock.Verify(x => x.ConsultarAsync(
+            idTalhao,
+            It.Is<DateTime>(d => d.Kind == DateTimeKind.Utc),
+            It.Is<DateTime>(d => d.Kind == DateTimeKind.Utc),
+            agruparMinutos,
+            It.IsAny<CancellationToken>()), Times.Once);
     }
 }
 

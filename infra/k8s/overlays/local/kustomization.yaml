@@ -31,4 +31,5 @@ labels:
     env: local
 patchesStrategicMerge:
 - configmap-env-patch.yaml
+- ingestao-replicas.patch.yaml
 - monitoring/service-labels.patch.yaml

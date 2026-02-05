@@ -11,6 +11,8 @@ metadata:
   name: ingestao-config
 data:
   ASPNETCORE_ENVIRONMENT: Development
+  SqlServer__UseInMemory: "true"
+  RabbitMq__Enabled: "false"
 ---
 apiVersion: v1
 kind: ConfigMap

@@ -28,6 +28,8 @@ spec:
                   value: "http://ingestao"
                 - name: TALHOES
                   value: "1,2,3"
+                - name: ID_PROPRIEDADE
+                  value: "00000000-0000-0000-0000-000000000001"
                 - name: INTERVALO_SECONDS
                   value: "2"
                 - name: TOTAL_POR_TALHAO
