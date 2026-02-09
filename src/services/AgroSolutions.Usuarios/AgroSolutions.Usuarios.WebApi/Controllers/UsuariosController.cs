@@ -57,6 +57,7 @@ namespace AgroSolutions.Usuarios.WebApi.Controllers
         [HttpPost("registrar")]
         public async Task<IActionResult> Registrar([FromBody] Usuario usuario)
         {
+            // O código que você já ajustou com BCrypt e SaveChanges
             usuario.Senha = BCrypt.Net.BCrypt.HashPassword(usuario.Senha);
             _context.Usuarios.Add(usuario);
             await _context.SaveChangesAsync();
