@@ -3,8 +3,13 @@ using AgroSolutions.Ingestao.WebApi.Infrastructure.Repositorios;
 using AgroSolutions.Ingestao.WebApi.Infrastructure.Observability;
 using AgroSolutions.Ingestao.WebApi.Infrastructure.SqlServer;
 using OpenTelemetry.Metrics;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+
 
 // Observability
 builder.Services.AddSingleton<IngestaoMetrics>();
@@ -16,9 +21,38 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    // JWT será adicionado pelo serviço de Usuários posteriormente.
-    // Mantemos Swagger simples por enquanto.
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "Insira o token JWT: Bearer {token}",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer"
+    });
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement {
+        {
+            new OpenApiSecurityScheme { Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" } },
+            new string[] {}
+        }
+    });
 });
+
+// Authentication
+var jwtKey = builder.Configuration["Jwt:Key"];
+if (string.IsNullOrEmpty(jwtKey)) throw new Exception("Jwt:Key is missing in configuration");
+var key = Encoding.ASCII.GetBytes(jwtKey);
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(key),
+            ValidateIssuer = false,
+            ValidateAudience = false
+        };
+    });
 
 // Health checks
 builder.Services.AddHealthChecks();
@@ -98,6 +132,7 @@ app.MapPrometheusScrapingEndpoint("/metrics");
 app.MapHealthChecks("/health/live");
 app.MapHealthChecks("/health/ready");
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

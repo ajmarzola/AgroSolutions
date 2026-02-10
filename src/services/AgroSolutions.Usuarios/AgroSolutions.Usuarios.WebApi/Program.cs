@@ -17,7 +17,8 @@ builder.Services.AddDbContext<AgroDbContext>(options =>
     }));
 
 // 2. Autentica��o JWT - Valida��o da Chave
-var jwtKey = builder.Configuration["Jwt:Key"] ?? "Chave_Reserva_De_Seguranca_Com_Mais_De_32_Caracteres";
+var jwtKey = builder.Configuration["Jwt:Key"];
+if (string.IsNullOrEmpty(jwtKey)) throw new Exception("Jwt:Key is missing");
 var key = Encoding.ASCII.GetBytes(jwtKey);
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -34,17 +35,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 // 3. Health Checks
 builder.Services.AddHealthChecks()
-    .AddCheck("DatabaseConnection", () => {
-        try
-        {
-            using (var client = new System.Net.Sockets.TcpClient("agrosolutions.database.windows.net", 1433))
-                return Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy();
-        }
-        catch
-        {
-            return Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Unhealthy();
-        }
-    });
+    .AddDbContextCheck<AgroDbContext>("Database");
 
 // 4. OpenTelemetry
 var otel = builder.Services.AddOpenTelemetry().WithMetrics(metrics =>

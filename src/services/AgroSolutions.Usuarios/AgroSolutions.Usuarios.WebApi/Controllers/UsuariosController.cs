@@ -1,5 +1,6 @@
 ﻿using AgroSolutions.Usuarios.WebApi.Data;
 using AgroSolutions.Usuarios.WebApi.Entity;
+using AgroSolutions.Usuarios.WebApi.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -25,7 +26,7 @@ namespace AgroSolutions.Usuarios.WebApi.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginRequest login)
+        public async Task<IActionResult> Login([FromBody] LoginRequestDto login)
         {
             var user = await _context.Usuarios.Include(u => u.Tipo)
                 .FirstOrDefaultAsync(u => u.Email == login.Email);
@@ -36,7 +37,9 @@ namespace AgroSolutions.Usuarios.WebApi.Controllers
             }
 
             var tokenHandler = new JwtSecurityTokenHandler();
-            string keyString = _config["Jwt:Key"] ?? "Chave_Mestra_AgroSolutions_2026_Seguranca_Total";
+            string keyString = _config["Jwt:Key"];
+            if (string.IsNullOrEmpty(keyString)) return StatusCode(500, "Internal Server Error: Jwt Key missing");
+
             var key = Encoding.ASCII.GetBytes(keyString);
 
             var tokenDescriptor = new SecurityTokenDescriptor
@@ -55,10 +58,20 @@ namespace AgroSolutions.Usuarios.WebApi.Controllers
         }
 
         [HttpPost("registrar")]
-        public async Task<IActionResult> Registrar([FromBody] Usuario usuario)
+        public async Task<IActionResult> Registrar([FromBody] RegistroUsuarioDto dto)
         {
-            // O código que você já ajustou com BCrypt e SaveChanges
-            usuario.Senha = BCrypt.Net.BCrypt.HashPassword(usuario.Senha);
+            if (await _context.Usuarios.AnyAsync(u => u.Email == dto.Email))
+            {
+                return BadRequest("E-mail já cadastrado.");
+            }
+
+            var usuario = new Usuario
+            {
+                Email = dto.Email,
+                Senha = BCrypt.Net.BCrypt.HashPassword(dto.Senha),
+                TipoId = dto.TipoId
+            };
+
             _context.Usuarios.Add(usuario);
             await _context.SaveChangesAsync();
             return Ok(new { mensagem = "Usuário criado com sucesso!" });
@@ -66,9 +79,18 @@ namespace AgroSolutions.Usuarios.WebApi.Controllers
 
         [Authorize]
         [HttpGet]
-        public async Task<IActionResult> ListarTodos()
+        public async Task<ActionResult<List<UsuarioDto>>> ListarTodos()
         {
-            return Ok(await _context.Usuarios.Include(u => u.Tipo).ToListAsync());
+            var usuarios = await _context.Usuarios.Include(u => u.Tipo)
+                .Select(u => new UsuarioDto
+                {
+                    Id = u.Id,
+                    Email = u.Email,
+                    TipoDescricao = u.Tipo != null ? u.Tipo.Descricao : "N/A"
+                })
+                .ToListAsync();
+
+            return Ok(usuarios);
         }
 
         [Authorize]

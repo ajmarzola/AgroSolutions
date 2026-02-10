@@ -5,6 +5,7 @@ using AgroSolutions.Ingestao.WebApi.Infrastructure.Mensageria;
 using AgroSolutions.Ingestao.WebApi.Infrastructure.Observability;
 using AgroSolutions.Ingestao.WebApi.Infrastructure.Repositorios;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace AgroSolutions.Ingestao.WebApi.Controllers;
 
@@ -29,6 +30,7 @@ public sealed class LeiturasSensoresController : ControllerBase
         _metrics = metrics;
     }
 
+    [Authorize]
     [HttpPost]
     [ProducesResponseType(typeof(object), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]

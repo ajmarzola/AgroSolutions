@@ -4,6 +4,7 @@ using AgroSolutions.Ingestao.WebApi.Domain;
 using AgroSolutions.Ingestao.WebApi.Infrastructure.Observability;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
+using Polly;
 
 namespace AgroSolutions.Ingestao.WebApi.Infrastructure.Mensageria;
 
@@ -13,6 +14,7 @@ public sealed class RabbitMqEventoPublisher : IEventoPublisher, IDisposable
     private readonly IConnection _connection;
     private readonly IModel _channel;
     private readonly IngestaoMetrics _metrics;
+    private readonly Policy _retryPolicy;
 
     public RabbitMqEventoPublisher(IOptions<RabbitMqOptions> options, IngestaoMetrics metrics)
     {
@@ -25,13 +27,29 @@ public sealed class RabbitMqEventoPublisher : IEventoPublisher, IDisposable
             Port = _options.Port,
             UserName = _options.UserName,
             Password = _options.Password,
-            DispatchConsumersAsync = true
+            DispatchConsumersAsync = true,
+            AutomaticRecoveryEnabled = true,
+            NetworkRecoveryInterval = TimeSpan.FromSeconds(5)
         };
+        
+        // Retry connection roughly
+        var connectPolicy = Policy.Handle<Exception>()
+            .WaitAndRetry(5, r => TimeSpan.FromSeconds(Math.Pow(2, r)));
 
-        _connection = factory.CreateConnection();
+        _connection = connectPolicy.Execute(() => factory.CreateConnection());
         _channel = _connection.CreateModel();
 
         _channel.ExchangeDeclare(exchange: _options.Exchange, type: ExchangeType.Topic, durable: true, autoDelete: false);
+        _channel.ConfirmSelect(); // Publisher Confirms
+
+        _retryPolicy = Policy
+            .Handle<Exception>()
+            .WaitAndRetry(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)), 
+                (exception, timeSpan, retryCount, context) => {
+                    _metrics.RabbitMqErrorsTotal.Add(1,
+                         new KeyValuePair<string, object?>("operation", "publish_retry"),
+                         new KeyValuePair<string, object?>("queue_name", _options.RoutingKeyLeituraRecebida));
+                });
     }
 
     public Task PublicarLeituraRecebidaAsync(LeituraSensor leitura, CancellationToken ct)
@@ -70,18 +88,23 @@ public sealed class RabbitMqEventoPublisher : IEventoPublisher, IDisposable
             props.Persistent = true;
             props.ContentType = "application/json";
 
-            _channel.BasicPublish(
-                exchange: _options.Exchange,
-                routingKey: _options.RoutingKeyLeituraRecebida,
-                basicProperties: props,
-                body: body);
+            _retryPolicy.Execute(() =>
+            {
+                _channel.BasicPublish(
+                    exchange: _options.Exchange,
+                    routingKey: _options.RoutingKeyLeituraRecebida,
+                    basicProperties: props,
+                    body: body);
+                
+                _channel.WaitForConfirmsOrDie(TimeSpan.FromSeconds(5));
+            });
 
             return Task.CompletedTask;
         }
         catch (Exception)
         {
             _metrics.RabbitMqErrorsTotal.Add(1,
-                new KeyValuePair<string, object?>("operation", "publish"),
+                new KeyValuePair<string, object?>("operation", "publish_failed"),
                 new KeyValuePair<string, object?>("queue_name", _options.RoutingKeyLeituraRecebida));
             throw;
         }
