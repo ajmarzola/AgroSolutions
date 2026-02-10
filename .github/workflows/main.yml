@@ -1,0 +1,114 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+    tags: [ "v*" ]
+  workflow_dispatch:
+
+env:
+  DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+
+jobs:
+  build-and-push:
+    name: Build and Push Docker Images
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - name: analise
+            dockerfile: src/services/AgroSolutions.Analise/AgroSolutions.Analise.WebApi/Dockerfile
+            image: analise
+          - name: ingestao
+            dockerfile: src/services/AgroSolutions.Ingestao/AgroSolutions.Ingestao.WebApi/Dockerfile
+            image: ingestao
+          - name: propriedades
+            dockerfile: src/services/AgroSolutions.Propriedades/AgroSolutions.Propriedades.WebApi/Dockerfile
+            image: propriedades
+          - name: usuarios
+            dockerfile: src/services/AgroSolutions.Usuarios/AgroSolutions.Usuarios.WebApi/Dockerfile
+            image: usuarios
+          - name: simulador
+            dockerfile: src/services/AgroSolutions.Ingestao/AgroSolutions.Ingestao.Simulador/Dockerfile
+            image: ingestao-simulador
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ secrets.DOCKERHUB_USERNAME }}/${{ matrix.service.image }}
+          tags: |
+            type=raw,value=${{ github.sha }}
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=semver,pattern={{version}}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ${{ matrix.service.dockerfile }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  update-manifests:
+    name: Update GitOps Manifests
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    if: success() && github.ref == 'refs/heads/main' # Only update manifests on main branch push
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install Kustomize
+        run: |
+          curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
+          sudo mv kustomize /usr/local/bin/
+
+      - name: Update Kubernetes manifests
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          COMMIT_SHA: ${{ github.sha }}
+        run: |
+          cd infra/k8s/overlays/prod
+          
+          # Update images using kustomize
+          kustomize edit set image analise=$DOCKER_USERNAME/analise:$COMMIT_SHA
+          kustomize edit set image ingestao=$DOCKER_USERNAME/ingestao:$COMMIT_SHA
+          kustomize edit set image ingestao-simulador=$DOCKER_USERNAME/ingestao-simulador:$COMMIT_SHA
+          kustomize edit set image propriedades=$DOCKER_USERNAME/propriedades:$COMMIT_SHA
+          kustomize edit set image usuarios=$DOCKER_USERNAME/usuarios:$COMMIT_SHA
+          
+          cat kustomization.yaml
+
+      - name: Commit and Push changes
+        run: |
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+          
+          # Check if there are changes
+          if [[ -n $(git status --porcelain) ]]; then
+            git add infra/k8s/overlays/prod/kustomization.yaml
+            git commit -m "chore(cd): update k8s images to ${{ github.sha }}"
+            git push
+          else
+            echo "No changes to commit"
+          fi

@@ -12,7 +12,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddHealthChecks();
 
 // OpenTelemetry Metrics + Prometheus exporter
-builder.Services.AddOpenTelemetry().WithMetrics(metrics =>
+var otel = builder.Services.AddOpenTelemetry().WithMetrics(metrics =>
 {
     metrics
         // Métricas HTTP do ASP.NET Core (latência, contagem, status code, etc.)
@@ -24,6 +24,23 @@ builder.Services.AddOpenTelemetry().WithMetrics(metrics =>
         // Exporter Prometheus
         .AddPrometheusExporter();
 });
+
+if (builder.Configuration.GetValue("OpenTelemetry:Enabled", false))
+{
+    otel.WithTracing(tracing =>
+    {
+        tracing
+            .SetResourceBuilder(OpenTelemetry.Resources.ResourceBuilder.CreateDefault()
+                .AddService("AgroSolutions.Propriedades.WebApi"))
+            .AddAspNetCoreInstrumentation()
+            .AddHttpClientInstrumentation()
+            .AddSqlClientInstrumentation(options => options.SetDbStatementForText = true)
+            .AddOtlpExporter(opt =>
+            {
+                opt.Endpoint = new Uri(builder.Configuration["OpenTelemetry:Endpoint"] ?? "http://localhost:4317");
+            });
+    });
+}
 
 var app = builder.Build();
 

@@ -30,6 +30,10 @@ spec:
           envFrom:
             - configMapRef:
                 name: ingestao-config
+            - configMapRef:
+                name: rabbitmq-config
+            - secretRef:
+                name: rabbitmq-secret
           # Se tiver segredos (JWT keys, connection strings), use Secret (não ConfigMap)
           # envFrom:
           #   - secretRef:

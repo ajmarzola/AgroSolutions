@@ -23,6 +23,13 @@ spec:
             - name: simulador
               image: ingestao-simulador
               imagePullPolicy: IfNotPresent
+              envFrom:
+                - configMapRef:
+                    name: ingestao-config
+                - configMapRef:
+                    name: rabbitmq-config
+                - secretRef:
+                    name: rabbitmq-secret
               env:
                 - name: INGESTAO_BASE_URL
                   value: "http://ingestao"
@@ -36,6 +43,8 @@ spec:
                   value: "10"
                 - name: FONTE
                   value: "simulador"
+                - name: MULTI_PROPRIEDADE
+                  value: "true"
                 - name: ID_DISPOSITIVO
                   value: "SIM-CRON-001"
               resources:

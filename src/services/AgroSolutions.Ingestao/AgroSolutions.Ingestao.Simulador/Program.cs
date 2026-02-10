@@ -3,8 +3,22 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using AgroSolutions.Ingestao.Simulador;
+using OpenTelemetry;
+using OpenTelemetry.Trace;
+using OpenTelemetry.Resources;
+
+// Configuração OpenTelemetry (Tracing)
+var otelEnabled = Environment.GetEnvironmentVariable("OpenTelemetry_Enabled") == "true" || true; // Default true or check config
+var otelEndpoint = Environment.GetEnvironmentVariable("OpenTelemetry_Endpoint") ?? "http://localhost:4317";
+
+using var tracerProvider = otelEnabled ? Sdk.CreateTracerProviderBuilder()
+    .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("AgroSolutions.Ingestao.Simulador"))
+    .AddHttpClientInstrumentation()
+    .AddOtlpExporter(opt => opt.Endpoint = new Uri(otelEndpoint))
+    .Build() : null;
 
 var options = SimuladorOptions.FromArgs(args);
+
 
 var jsonOptions = new JsonSerializerOptions
 {
@@ -36,7 +50,21 @@ for (var i = 0; i < options.TotalPorTalhao; i++)
 {
     foreach (var idTalhao in options.Talhoes)
     {
-        var leitura = LeituraSensorDto.CriarAleatoria(idTalhao, options, rnd);
+        // Simula multi-propriedade para variar métricas de negócio
+        var currentOptions = options;
+        // Se a variável de ambiente MULTI_PROPRIEDADE=true, varia IDs
+        if (Environment.GetEnvironmentVariable("MULTI_PROPRIEDADE") == "true")
+        {
+             // 50% de chance de mudar a propriedade para gerar volume distribuído
+             if (rnd.NextDouble() > 0.5) 
+             {
+                 var suffix = rnd.Next(2, 6); // ex: ...0002 a ...0005
+                 var randomProp = Guid.Parse($"00000000-0000-0000-0000-00000000000{suffix}");
+                 currentOptions = options with { IdPropriedade = randomProp };
+             }
+        }
+
+        var leitura = LeituraSensorDto.CriarAleatoria(idTalhao, currentOptions, rnd);
 
         var content = new StringContent(JsonSerializer.Serialize(leitura, jsonOptions), Encoding.UTF8, "application/json");
 

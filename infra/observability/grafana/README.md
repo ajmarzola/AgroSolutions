@@ -169,3 +169,69 @@ kubectl get servicemonitors -n agrosolutions-observability
 - **Dashboard vazio**: verifique se as APIs estÃ£o rodando e expondo `/metrics`.
 - **Targets DOWN**: confirme o label `monitoring: enabled` nos Services e o ServiceMonitor aplicado.
 - **Sem dados de latÃªncia/RPS**: gere trÃ¡fego nas APIs (ex.: simulador ou chamadas via Swagger).
+
+---
+
+## ?? Rastreamento Distribuído (Distributed Tracing)
+
+O rastreamento distribuído permite acompanhar o ciclo de vida de uma requisição que perpassa diversos serviços. Utilizamos **OpenTelemetry** para instrumentação e **Jaeger** para visualização.
+
+### 1. Acessando a Interface do Jaeger
+
+O Jaeger UI é o local onde você pode visualizar os traces.
+
+Para acessar localmente, faça o port-forward do serviço do Jaeger (que roda no namespace grosolutions-local):
+
+\\\ash
+kubectl port-forward svc/jaeger-collector 16686:16686 -n agrosolutions-local
+\\\
+
+Em seguida, acesse no navegador: **[http://localhost:16686](http://localhost:16686)**
+
+### 2. Gerando e Visualizando Traces
+
+1.  **Gere Tráfego**: Utilize o Simulador ou faça chamadas aos endpoints da Ingestao.WebApi.
+2.  **Busque no Jaeger**:
+    *   No menu esquerdo 'Service', selecione \AgroSolutions.Ingestao.WebApi\ (ou outro serviço).
+    *   Clique em **Find Traces**.
+    *   Você verá uma lista de requisições. Clique em uma para ver o detalhe.
+3.  **Trace Distribuído**: Se a requisição envolver múltiplos serviços, você verá as 'spans' de cada serviço aninhadas, permitindo identificar gargalos de latência.
+
+### 3. Validação
+
+Certifique-se que o serviço \jaeger\ está rodando:
+
+\\\ash
+kubectl get pods -l app=jaeger -n agrosolutions-local
+\\\
+
+Se não houver traços, verifique se a variável de ambiente \OpenTelemetry__Enabled\ está como 'true' e se o endpoint \http://jaeger-collector:4317\ está acessível pelos pods.
+
+
+---
+
+## ğŸ› ï¸ AutomaÃ§Ã£o e Dashboard-as-Code
+
+A infraestrutura do Grafana neste projeto foi automatizada para carregar Data Sources e Dashboards via cÃ³digo.
+
+### ğŸ” Credenciais de Acesso (Admin)
+
+Caso utilize a implantaÃ§Ã£o customizada (via manifestos em `infra/k8s`):
+- **UsuÃ¡rio**: `admin`
+- **Senha**: `admin`
+
+Para recuperar as credenciais via Secret:
+```bash
+kubectl get secret grafana-admin-credentials -o jsonpath="{.data.admin-user}" | base64 --decode
+kubectl get secret grafana-admin-credentials -o jsonpath="{.data.admin-password}" | base64 --decode
+```
+
+### â• Gerenciamento de Dashboards
+
+Os dashboards sÃ£o carregados automaticamente atravÃ©s de ConfigMaps monitorados por um Sidecar.
+
+**Para adicionar um novo dashboard:**
+1. Adicione o arquivo JSON do dashboard na pasta: `infra/k8s/base/observability/grafana/dashboards/`.
+2. O Kustomize (`infra/k8s/base/observability/grafana/kustomization.yaml`) estÃ¡ configurado para gerar um ConfigMap com a label `grafana_dashboard: "1"` para os arquivos nesta pasta. *Nota: Se adicionar novos arquivos, lembre-se de listÃ¡-los no kustomization.yaml*.
+3. Aplique a configuraÃ§Ã£o: `kubectl apply -k infra/k8s/base/observability`
+4. O Grafana detectarÃ¡ a mudanÃ§a e disponibilizarÃ¡ o dashboard imediatamente na pasta "AgroSolutions" (sem necessidade de restart).

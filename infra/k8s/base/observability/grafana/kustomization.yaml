@@ -1,0 +1,22 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - deployment.yaml
+  - service.yaml
+  - secret.yaml
+
+configMapGenerator:
+  - name: grafana-datasources
+    files:
+      - datasources.yaml
+  - name: grafana-dashboard-provider
+    files:
+      - dashboard-provider.yaml
+  - name: grafana-dashboards-json
+    files:
+      - dashboards/agrosolutions-apis-prometheus.json
+      - dashboards/agrosolutions-business-metrics.json
+    options:
+      labels:
+        grafana_dashboard: "1"

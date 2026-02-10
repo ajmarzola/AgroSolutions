@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+  labels:
+    app: grafana
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      containers:
+      - name: grafana
+        image: grafana/grafana:10.0.0
+        ports:
+        - containerPort: 3000
+          name: http
+        env:
+        - name: GF_SECURITY_ADMIN_USER
+          valueFrom:
+            secretKeyRef:
+              name: grafana-admin-credentials
+              key: admin-user
+              optional: true
+        - name: GF_SECURITY_ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: grafana-admin-credentials
+              key: admin-password
+              optional: true
+        volumeMounts:
+        - name: grafana-datasources
+          mountPath: /etc/grafana/provisioning/datasources
+        - name: grafana-dashboard-provider
+          mountPath: /etc/grafana/provisioning/dashboards
+        - name: shared-dashboards
+          mountPath: /var/lib/grafana/dashboards
+        resources:
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+      - name: dashboard-sidecar
+        image: kiwigrid/k8s-sidecar:1.24.4
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: LABEL
+          value: "grafana_dashboard"
+        - name: LABEL_VALUE
+          value: "1"
+        - name: FOLDER
+          value: "/var/lib/grafana/dashboards"
+        - name: RESOURCE
+          value: "configmap"
+        volumeMounts:
+        - name: shared-dashboards
+          mountPath: /var/lib/grafana/dashboards
+        resources:
+          limits:
+            memory: "100Mi"
+            cpu: "100m"
+      volumes:
+      - name: shared-dashboards
+        emptyDir: {}
+      - name: grafana-datasources
+        configMap:
+          name: grafana-datasources
+      - name: grafana-dashboard-provider
+        configMap:
+          name: grafana-dashboard-provider

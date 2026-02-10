@@ -2,6 +2,7 @@ using AgroSolutions.Ingestao.WebApi.Contracts.Requests;
 using AgroSolutions.Ingestao.WebApi.Contracts.Responses;
 using AgroSolutions.Ingestao.WebApi.Domain;
 using AgroSolutions.Ingestao.WebApi.Infrastructure.Mensageria;
+using AgroSolutions.Ingestao.WebApi.Infrastructure.Observability;
 using AgroSolutions.Ingestao.WebApi.Infrastructure.Repositorios;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,15 +15,18 @@ public sealed class LeiturasSensoresController : ControllerBase
     private readonly ILeituraSensorRepositorio _repositorio;
     private readonly IEventoPublisher _publisher;
     private readonly ILogger<LeiturasSensoresController> _logger;
+    private readonly IngestaoMetrics _metrics;
 
     public LeiturasSensoresController(
         ILeituraSensorRepositorio repositorio,
         IEventoPublisher publisher,
-        ILogger<LeiturasSensoresController> logger)
+        ILogger<LeiturasSensoresController> logger,
+        IngestaoMetrics metrics)
     {
         _repositorio = repositorio;
         _publisher = publisher;
         _logger = logger;
+        _metrics = metrics;
     }
 
     [HttpPost]
@@ -51,6 +55,11 @@ public sealed class LeiturasSensoresController : ControllerBase
             IdDispositivo = request.Meta?.IdDispositivo,
             CorrelationId = request.Meta?.CorrelationId
         };
+
+        // Métricas de negócio
+        _metrics.LeiturasTotal.Add(1,
+            new KeyValuePair<string, object?>("propriedade_id", leitura.IdPropriedade),
+            new KeyValuePair<string, object?>("talhao_id", leitura.IdTalhao));
 
         var id = await _repositorio.InserirAsync(leitura, ct);
         leitura.Id = id;

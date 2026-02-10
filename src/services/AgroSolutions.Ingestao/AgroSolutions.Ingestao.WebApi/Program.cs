@@ -1,9 +1,13 @@
 using AgroSolutions.Ingestao.WebApi.Infrastructure.Mensageria;
 using AgroSolutions.Ingestao.WebApi.Infrastructure.Repositorios;
+using AgroSolutions.Ingestao.WebApi.Infrastructure.Observability;
 using AgroSolutions.Ingestao.WebApi.Infrastructure.SqlServer;
 using OpenTelemetry.Metrics;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Observability
+builder.Services.AddSingleton<IngestaoMetrics>();
 
 // Controllers (mantém padrão mais amigável para o time)
 builder.Services.AddControllers();
@@ -49,18 +53,37 @@ else
 }
 
 // OpenTelemetry Metrics + Prometheus exporter
-builder.Services.AddOpenTelemetry().WithMetrics(metrics =>
+var otel = builder.Services.AddOpenTelemetry()
+    .WithMetrics(metrics =>
+    {
+        metrics
+            .AddMeter(IngestaoMetrics.MeterName)
+            // Métricas HTTP do ASP.NET Core (latência, contagem, status code, etc.)
+            .AddAspNetCoreInstrumentation()
+            // Métricas de HttpClient (se a API chama outras APIs)
+            .AddHttpClientInstrumentation()
+            // Métricas do runtime .NET (GC, threads, etc.)
+            .AddRuntimeInstrumentation()
+            // Exporter Prometheus
+            .AddPrometheusExporter();
+    });
+
+if (builder.Configuration.GetValue("OpenTelemetry:Enabled", false))
 {
-    metrics
-        // Métricas HTTP do ASP.NET Core (latência, contagem, status code, etc.)
-        .AddAspNetCoreInstrumentation()
-        // Métricas de HttpClient (se a API chama outras APIs)
-        .AddHttpClientInstrumentation()
-        // Métricas do runtime .NET (GC, threads, etc.)
-        .AddRuntimeInstrumentation()
-        // Exporter Prometheus
-        .AddPrometheusExporter();
-});
+    otel.WithTracing(tracing =>
+    {
+        tracing
+            .SetResourceBuilder(OpenTelemetry.Resources.ResourceBuilder.CreateDefault()
+                .AddService("AgroSolutions.Ingestao.WebApi"))
+            .AddAspNetCoreInstrumentation()
+            .AddHttpClientInstrumentation()
+            .AddSqlClientInstrumentation(options => options.SetDbStatementForText = true)
+            .AddOtlpExporter(opt =>
+            {
+                opt.Endpoint = new Uri(builder.Configuration["OpenTelemetry:Endpoint"] ?? "http://localhost:4317");
+            });
+    });
+}
 
 var app = builder.Build();
 

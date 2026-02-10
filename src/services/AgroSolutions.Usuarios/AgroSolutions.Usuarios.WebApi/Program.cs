@@ -8,7 +8,7 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. Banco de Dados com Resiliência
+// 1. Banco de Dados com Resiliï¿½ncia
 var conn = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<AgroDbContext>(options =>
     options.UseSqlServer(conn, sqlOptions =>
@@ -16,7 +16,7 @@ builder.Services.AddDbContext<AgroDbContext>(options =>
         sqlOptions.EnableRetryOnFailure(5, TimeSpan.FromSeconds(30), null);
     }));
 
-// 2. Autenticação JWT - Validação da Chave
+// 2. Autenticaï¿½ï¿½o JWT - Validaï¿½ï¿½o da Chave
 var jwtKey = builder.Configuration["Jwt:Key"] ?? "Chave_Reserva_De_Seguranca_Com_Mais_De_32_Caracteres";
 var key = Encoding.ASCII.GetBytes(jwtKey);
 
@@ -47,16 +47,33 @@ builder.Services.AddHealthChecks()
     });
 
 // 4. OpenTelemetry
-builder.Services.AddOpenTelemetry().WithMetrics(metrics =>
+var otel = builder.Services.AddOpenTelemetry().WithMetrics(metrics =>
 {
     metrics.AddAspNetCoreInstrumentation().AddHttpClientInstrumentation()
            .AddRuntimeInstrumentation().AddPrometheusExporter();
 });
 
+if (builder.Configuration.GetValue("OpenTelemetry:Enabled", false))
+{
+    otel.WithTracing(tracing =>
+    {
+        tracing
+            .SetResourceBuilder(OpenTelemetry.Resources.ResourceBuilder.CreateDefault()
+                .AddService("AgroSolutions.Usuarios.WebApi"))
+            .AddAspNetCoreInstrumentation()
+            .AddHttpClientInstrumentation()
+            .AddSqlClientInstrumentation(options => options.SetDbStatementForText = true)
+            .AddOtlpExporter(opt =>
+            {
+                opt.Endpoint = new Uri(builder.Configuration["OpenTelemetry:Endpoint"] ?? "http://localhost:4317");
+            });
+    });
+}
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
-// 5. Swagger com suporte a JWT (Botão Authorize)
+// 5. Swagger com suporte a JWT (Botï¿½o Authorize)
 builder.Services.AddSwaggerGen(c => {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "AgroSolutions API", Version = "v1" });
 
