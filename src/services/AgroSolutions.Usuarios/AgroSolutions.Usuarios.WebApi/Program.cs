@@ -1,45 +1,97 @@
+using AgroSolutions.Usuarios.WebApi.Data;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using OpenTelemetry.Metrics;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// 1. Banco de Dados com Resiliência
+var conn = builder.Configuration.GetConnectionString("DefaultConnection");
+builder.Services.AddDbContext<AgroDbContext>(options =>
+    options.UseSqlServer(conn, sqlOptions =>
+    {
+        sqlOptions.EnableRetryOnFailure(5, TimeSpan.FromSeconds(30), null);
+    }));
 
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+// 2. Autenticação JWT - Validação da Chave
+var jwtKey = builder.Configuration["Jwt:Key"] ?? "Chave_Reserva_De_Seguranca_Com_Mais_De_32_Caracteres";
+var key = Encoding.ASCII.GetBytes(jwtKey);
 
-builder.Services.AddHealthChecks();
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options => {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(key),
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ClockSkew = TimeSpan.Zero
+        };
+    });
 
-// OpenTelemetry Metrics + Prometheus exporter
+// 3. Health Checks
+builder.Services.AddHealthChecks()
+    .AddCheck("DatabaseConnection", () => {
+        try
+        {
+            using (var client = new System.Net.Sockets.TcpClient("agrosolutions.database.windows.net", 1433))
+                return Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy();
+        }
+        catch
+        {
+            return Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Unhealthy();
+        }
+    });
+
+// 4. OpenTelemetry
 builder.Services.AddOpenTelemetry().WithMetrics(metrics =>
 {
-    metrics
-        // MÃ©tricas HTTP do ASP.NET Core (latÃªncia, contagem, status code, etc.)
-        .AddAspNetCoreInstrumentation()
-        // MÃ©tricas de HttpClient (se a API chama outras APIs)
-        .AddHttpClientInstrumentation()
-        // MÃ©tricas do runtime .NET (GC, threads, etc.)
-        .AddRuntimeInstrumentation()
-        // Exporter Prometheus
-        .AddPrometheusExporter();
+    metrics.AddAspNetCoreInstrumentation().AddHttpClientInstrumentation()
+           .AddRuntimeInstrumentation().AddPrometheusExporter();
 });
+
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+
+// 5. Swagger com suporte a JWT (Botão Authorize)
+builder.Services.AddSwaggerGen(c => {
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "AgroSolutions API", Version = "v1" });
+
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "Insira o token JWT desta maneira: Bearer {seu_token}",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer"
+    });
+
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement {
+        {
+            new OpenApiSecurityScheme {
+                Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
+            },
+            new string[] {}
+        }
+    });
+});
+
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 app.UseSwagger();
-app.UseSwaggerUI();
+app.UseSwaggerUI(c => {
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "AgroSolutions API v1");
+});
 
-// Exponha /metrics para Prometheus (endpoint HTTP)
-app.MapPrometheusScrapingEndpoint("/metrics");
+app.MapHealthChecks("/health");
+app.UseOpenTelemetryPrometheusScrapingEndpoint();
 
-// (Opcional) Health check bÃ¡sico
-app.MapHealthChecks("/health/live");
-app.MapHealthChecks("/health/ready");
-
+app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
-
 app.Run();
