@@ -1,12 +1,31 @@
 using AgroSolutions.Analise.WebApi.Infrastructure.Observability;
+using AgroSolutions.Analise.WebApi.Infrastructure.Mensageria;
+using AgroSolutions.Analise.WebApi.Infrastructure.Repositorios;
+using AgroSolutions.Analise.WebApi.Infrastructure.SqlServer;
 using AgroSolutions.Analise.WebApi.Services;
 using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources; 
+using OpenTelemetry.Trace;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddSingleton<AnaliseMetrics>();
-builder.Services.AddHostedService<AlertsProcessorService>();
+
+// Options
+builder.Services.Configure<SqlServerOptions>(builder.Configuration.GetSection(SqlServerOptions.SectionName));
+builder.Services.Configure<RabbitMqOptions>(builder.Configuration.GetSection(RabbitMqOptions.SectionName));
+
+// Infra
+builder.Services.AddSingleton(sp => sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<SqlServerOptions>>().Value);
+builder.Services.AddSingleton<ISqlConnectionFactory, SqlConnectionFactory>();
+builder.Services.AddSingleton<IAnaliseRepositorio, AnaliseRepositorio>();
+
+// Services
+builder.Services.AddScoped<IMotorDeAlertas, MotorDeAlertas>();
+
+// Consumer (Background Service)
+builder.Services.AddHostedService<RabbitMqLeiturasConsumer>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -39,7 +58,7 @@ if (builder.Configuration.GetValue("OpenTelemetry:Enabled", false))
                 .AddService("AgroSolutions.Analise.WebApi"))
             .AddAspNetCoreInstrumentation()
             .AddHttpClientInstrumentation()
-            .AddSqlClientInstrumentation(options => options.SetDbStatementForText = true)
+            .AddSqlClientInstrumentation(options => { /* options.SetDbStatementForText = true; */ })
             .AddOtlpExporter(opt =>
             {
                 opt.Endpoint = new Uri(builder.Configuration["OpenTelemetry:Endpoint"] ?? "http://localhost:4317");

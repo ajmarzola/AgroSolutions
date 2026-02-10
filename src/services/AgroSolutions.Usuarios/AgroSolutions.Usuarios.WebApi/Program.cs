@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace; // Might be needed for WithTracing
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -53,7 +55,7 @@ if (builder.Configuration.GetValue("OpenTelemetry:Enabled", false))
                 .AddService("AgroSolutions.Usuarios.WebApi"))
             .AddAspNetCoreInstrumentation()
             .AddHttpClientInstrumentation()
-            .AddSqlClientInstrumentation(options => options.SetDbStatementForText = true)
+            .AddSqlClientInstrumentation(options => { /* options.SetDbStatementForText = true; */ })
             .AddOtlpExporter(opt =>
             {
                 opt.Endpoint = new Uri(builder.Configuration["OpenTelemetry:Endpoint"] ?? "http://localhost:4317");
