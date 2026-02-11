@@ -1,6 +1,11 @@
+using AgroSolutions.Propriedades.WebApi.Data;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +15,25 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddDbContext<PropriedadesDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// JWT Configuration
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? "SegredoPadraoParaDesenvolvimentoNaoUseEmProducao123"))
+        };
+    });
 
 builder.Services.AddHealthChecks();
 
@@ -32,14 +56,13 @@ if (builder.Configuration.GetValue("OpenTelemetry:Enabled", false))
     otel.WithTracing(tracing =>
     {
         tracing
-            .SetResourceBuilder(OpenTelemetry.Resources.ResourceBuilder.CreateDefault()
+            .SetResourceBuilder(ResourceBuilder.CreateDefault()
                 .AddService("AgroSolutions.Propriedades.WebApi"))
             .AddAspNetCoreInstrumentation()
             .AddHttpClientInstrumentation()
-            .AddSqlClientInstrumentation(options => 
+            .AddSqlClientInstrumentation(options =>
             {
                 options.RecordException = true;
-                // SetDbStatementForText is not available in the current version
             })
             .AddOtlpExporter(opt =>
             {
@@ -51,18 +74,19 @@ if (builder.Configuration.GetValue("OpenTelemetry:Enabled", false))
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-app.UseSwagger();
-app.UseSwaggerUI();
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
-// Exponha /metrics para Prometheus (endpoint HTTP)
-app.MapPrometheusScrapingEndpoint("/metrics");
+// app.UseHttpsRedirection(); // Usually disabled behind k8s ingress/gateway unless required
 
-// (Opcional) Health check básico
-app.MapHealthChecks("/health/live");
-app.MapHealthChecks("/health/ready");
-
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHealthChecks("/health");
+app.MapPrometheusScrapingEndpoint();
 
 app.Run();
