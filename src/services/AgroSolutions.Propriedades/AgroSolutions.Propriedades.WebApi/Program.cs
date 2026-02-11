@@ -1,5 +1,6 @@
 using AgroSolutions.Propriedades.WebApi.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using OpenTelemetry.Metrics;
@@ -35,7 +36,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-builder.Services.AddHealthChecks();
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<PropriedadesDbContext>();
 
 // OpenTelemetry Metrics + Prometheus exporter
 var otel = builder.Services.AddOpenTelemetry().WithMetrics(metrics =>
@@ -85,8 +87,24 @@ if (app.Environment.IsDevelopment())
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapControllers();
-app.MapHealthChecks("/health");
+
+app.MapHealthChecks("/health/live", new HealthCheckOptions
+{
+    Predicate = _ => false
+});
+app.MapHealthChecks("/health/ready", new HealthCheckOptions
+{
+    Predicate = _ => true
+});
+
+app.MapPrometheusScrapingEndpoint();
+
+// Auto-Migration (Hackathon Mode)
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<PropriedadesDbContext>();
+    context.Database.Migrate();
+}
 app.MapPrometheusScrapingEndpoint();
 
 app.Run();
