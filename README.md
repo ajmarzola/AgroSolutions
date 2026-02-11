@@ -61,7 +61,76 @@ Cada serviço é independente, containerizado e orquestrado via Kubernetes.
 
 ---
 
-## 🗺️ Diagrama de Arquitetura (Miro)
+## � Quickstart Executável (Caminho Feliz)
+
+Para rodar o projeto localmente e validar o fluxo completo:
+
+### 1. Subir Infraestrutura
+```bash
+kubectl apply -k infra/k8s/overlays/local
+```
+
+### 2. Autenticação (Obter Token)
+**POST** `http://localhost:30001/api/usuarios/login`
+```json
+{
+  "email": "admin@agrosolutions.com",
+  "password": "admin"
+}
+```
+*Copie o token `eyJ...` retornado.*
+
+### 3. Criar Recursos com o Token
+Use o Header `Authorization: Bearer <SEU_TOKEN>` nas requisições abaixo.
+
+**Criar Propriedade:**
+**POST** `http://localhost:30002/api/v1/propriedades`
+```json
+{
+  "nome": "Fazenda Modelo",
+  "localizacao": "SP"
+}
+```
+*Copie o `id` da resposta.*
+
+**Criar Talhão:**
+Substitua `{id}` pelo ID da propriedade criada.
+**POST** `http://localhost:30002/api/v1/propriedades/{id}/talhoes`
+```json
+{
+  "nome": "Talhão 1",
+  "cultura": "Soja",
+  "area": 100
+}
+```
+
+### 4. Verificar Simulador e Alertas
+
+1. **Simulador:** 
+   Verifique se está rodando: `kubectl get pods -n agrosolutions-local -l app=ingestao-simulador` (Status deve ser `Running`).
+
+2. **Grafana:**
+   Exponha o serviço:
+   ```bash
+   kubectl port-forward svc/grafana 3000:80 -n agrosolutions-local
+   ```
+   Acesse `http://localhost:3000` (User/Pass: `admin`/`admin`).
+   Veja o dashboard "AgroSolutions Monitor" com os alertas gerados.
+
+---
+
+## 🔧 Troubleshooting
+
+| Erro / Sintoma | Ação Recomendada |
+| :--- | :--- |
+| **Pod CrashLoopBackOff** | `kubectl logs <nome-pod> -n agrosolutions-local` para ver detalhes. |
+| **Probes (NotReady)** | Aguarde a inicialização completa (especialmente SQL Server). Aumente `initialDelaySeconds` se persistir. |
+| **Erro Conexão SQL** | Verifique se o pod SQL Server está `Running`. Confirme a connection string nos Secrets. |
+| **Erro 401 Unauthorized** | Token expirou. Gere um novo no `/login`. |
+
+---
+
+## �🗺️ Diagrama de Arquitetura (Miro)
 
 O diagrama da arquitetura está disponível no Miro:
 
