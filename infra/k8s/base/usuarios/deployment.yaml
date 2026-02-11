@@ -28,6 +28,8 @@ spec:
             - name: http
               containerPort: 8080
           envFrom:
+            - secretRef:
+                name: agrosolutions-auth-secrets
             - configMapRef:
                 name: usuarios-config
             - configMapRef:
@@ -48,7 +50,7 @@ spec:
 
           readinessProbe:
             httpGet:
-              path: /health/ready
+              path: /health
               port: http
             initialDelaySeconds: 10
             periodSeconds: 10
@@ -57,7 +59,7 @@ spec:
 
           livenessProbe:
             httpGet:
-              path: /health/live
+              path: /health
               port: http
             initialDelaySeconds: 20
             periodSeconds: 20

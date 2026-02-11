@@ -28,6 +28,8 @@ spec:
             - name: http
               containerPort: 8080
           envFrom:
+            - secretRef:
+                name: agrosolutions-auth-secrets
             - configMapRef:
                 name: analise-config
             - configMapRef:
