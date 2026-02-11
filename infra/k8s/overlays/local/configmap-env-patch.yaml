@@ -4,6 +4,7 @@ metadata:
   name: analise-config
 data:
   ASPNETCORE_ENVIRONMENT: Development
+  SqlServer__ConnectionString: "Server=sql-service;Database=AgroSolutionsAnalise;User Id=sa;Password=Password123!;TrustServerCertificate=True;"
   OpenTelemetry__Enabled: "true"
   OpenTelemetry__Endpoint: "http://jaeger-collector:4317"
   Jwt__Key: "segredo_super_secreto_para_desenvolvimento_local"
@@ -17,7 +18,7 @@ metadata:
 data:
   ASPNETCORE_ENVIRONMENT: Development
   SqlServer__UseInMemory: "true"
-  RabbitMq__Enabled: "false"
+  RabbitMq__Enabled: "true"
   OpenTelemetry__Enabled: "true"
   OpenTelemetry__Endpoint: "http://jaeger-collector:4317"
   # Para o Simulador (que l variveis tambm)

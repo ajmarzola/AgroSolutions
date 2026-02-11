@@ -2,6 +2,7 @@ using AgroSolutions.Analise.WebApi.Infrastructure.Observability;
 using AgroSolutions.Analise.WebApi.Infrastructure.Mensageria;
 using AgroSolutions.Analise.WebApi.Infrastructure.Repositorios;
 using AgroSolutions.Analise.WebApi.Infrastructure.SqlServer;
+using AgroSolutions.Analise.WebApi.Infrastructure.HealthChecks;
 using AgroSolutions.Analise.WebApi.Services;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources; 
@@ -32,7 +33,8 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddHealthChecks();
+builder.Services.AddHealthChecks()
+    .AddCheck<SqlServerHealthCheck>("sql");
 
 // OpenTelemetry Metrics + Prometheus exporter
 var otel = builder.Services.AddOpenTelemetry().WithMetrics(metrics =>

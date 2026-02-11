@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: analise-db-config
+data:
+  # Placeholder for non-sensitive config if needed
+  DatabaseName: "AgroSolutionsAnalise"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: analise-db-secret
+type: Opaque
+stringData:
+  SqlServer__ConnectionString: "Server=sql-service;Database=AgroSolutionsAnalise;User Id=sa;Password=Password123!;TrustServerCertificate=True;"
