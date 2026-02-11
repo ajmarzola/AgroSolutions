@@ -4,6 +4,9 @@ using AgroSolutions.Analise.WebApi.Infrastructure.Repositorios;
 using AgroSolutions.Analise.WebApi.Infrastructure.SqlServer;
 using AgroSolutions.Analise.WebApi.Infrastructure.HealthChecks;
 using AgroSolutions.Analise.WebApi.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources; 
 using OpenTelemetry.Trace;
@@ -27,6 +30,26 @@ builder.Services.AddScoped<IMotorDeAlertas, MotorDeAlertas>();
 
 // Consumer (Background Service)
 builder.Services.AddHostedService<RabbitMqLeiturasConsumer>();
+
+// Authentication
+var jwtKey = builder.Configuration["Jwt:Key"];
+if (string.IsNullOrEmpty(jwtKey)) throw new Exception("Jwt:Key is missing in configuration");
+var key = Encoding.ASCII.GetBytes(jwtKey);
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(key),
+            ValidateIssuer = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidateAudience = true,
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            ValidateLifetime = true
+        };
+    });
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -61,7 +84,8 @@ if (builder.Configuration.GetValue("OpenTelemetry:Enabled", false))
             .AddAspNetCoreInstrumentation()
             .AddHttpClientInstrumentation()
             .AddSqlClientInstrumentation(options => { /* options.SetDbStatementForText = true; */ })
-            .AddOtlpExporter(opt =>
+           entication();
+app.UseAuth .AddOtlpExporter(opt =>
             {
                 opt.Endpoint = new Uri(builder.Configuration["OpenTelemetry:Endpoint"] ?? "http://localhost:4317");
             });

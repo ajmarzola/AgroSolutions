@@ -38,3 +38,13 @@ patchesStrategicMerge:
 - ingestao-replicas.patch.yaml
 - monitoring/service-labels.patch.yaml
 - service-nodeport.patch.yaml
+
+secretGenerator:
+  - name: agrosolutions-auth-secrets
+    envs:
+    - .env
+  - name: sql-secret
+    behavior: replace
+    envs:
+    - .env
+
