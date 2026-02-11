@@ -7,7 +7,7 @@ public class RabbitMqOptions
     public int Port { get; set; } = 5672;
     public string UserName { get; set; } = "guest";
     public string Password { get; set; } = "guest";
-    public string Exchange { get; set; } = "agrosolutions";
+    public string Exchange { get; set; } = "agrosolutions.exchange";
     public string QueueAnalise { get; set; } = "AgroSolutions.Analise.Leituras";
     public string RoutingKeyLeituraRecebida { get; set; } = "ingestao.leitura_sensor_recebida";
     public bool Enabled { get; set; } = true;

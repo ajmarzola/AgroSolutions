@@ -5,7 +5,5 @@ metadata:
   labels:
     app: rabbitmq
 data:
-  RABBITMQ_HOST: "rabbitmq"
-  RABBITMQ_PORT: "5672"
-  RABBITMQ_EXCHANGE: "agrosolutions.exchange"
-  RABBITMQ_ROUTING_KEY: "default.key"
+  RabbitMq__HostName: "rabbitmq-service"
+  RabbitMq__Exchange: "agrosolutions.exchange"

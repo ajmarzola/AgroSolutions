@@ -11,6 +11,6 @@ public sealed class RabbitMqOptions
     public string UserName { get; init; } = "guest";
     public string Password { get; init; } = "guest";
 
-    public string Exchange { get; init; } = "agrosolutions";
+    public string Exchange { get; init; } = "agrosolutions.exchange";
     public string RoutingKeyLeituraRecebida { get; init; } = "ingestao.leitura_sensor_recebida";
 }

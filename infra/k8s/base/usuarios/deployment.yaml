@@ -32,10 +32,6 @@ spec:
                 name: agrosolutions-auth-secrets
             - configMapRef:
                 name: usuarios-config
-            - configMapRef:
-                name: rabbitmq-config
-            - secretRef:
-                name: rabbitmq-secret
           # Se tiver segredos (JWT keys, connection strings), use Secret (não ConfigMap)
           # envFrom:
           #   - secretRef:
