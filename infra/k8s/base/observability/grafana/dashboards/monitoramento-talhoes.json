@@ -31,7 +31,7 @@
     {
       "datasource": {
         "type": "mssql",
-        "uid": "${datasource}"
+        "uid": "mssql-analise"
       },
       "gridPos": {
         "h": 8,
@@ -57,7 +57,7 @@
           "dataset": "Leitura",
           "datasource": {
             "type": "mssql",
-            "uid": "${datasource}"
+            "uid": "mssql-analise"
           },
           "editorMode": "code",
           "format": "table",
@@ -71,7 +71,7 @@
     {
       "datasource": {
         "type": "mssql",
-        "uid": "${datasource}"
+        "uid": "mssql-analise"
       },
       "fieldConfig": {
         "defaults": {
@@ -145,7 +145,7 @@
           "dataset": "Leitura",
           "datasource": {
             "type": "mssql",
-            "uid": "${datasource}"
+            "uid": "mssql-analise"
           },
           "editorMode": "code",
           "format": "time_series",
@@ -160,7 +160,7 @@
     {
       "datasource": {
         "type": "mssql",
-        "uid": "${datasource}"
+        "uid": "mssql-analise"
       },
       "gridPos": {
         "h": 8,
@@ -185,7 +185,7 @@
           "dataset": "Alerta",
           "datasource": {
             "type": "mssql",
-            "uid": "${datasource}"
+            "uid": "mssql-analise"
           },
           "editorMode": "code",
           "format": "table",

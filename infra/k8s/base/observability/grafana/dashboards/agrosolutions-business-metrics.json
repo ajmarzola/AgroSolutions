@@ -110,7 +110,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum by (propriedade_id) (increase(agrosolutions_sensor_readings_total_total[$__range]))",
+          "expr": "sum by (propriedade_id) (increase(agrosolutions_sensor_readings_total[$__range]))",
           "legendFormat": "{{propriedade_id}}",
           "range": true,
           "refId": "A"
@@ -175,7 +175,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum(increase(agrosolutions_rabbitmq_errors_total_total[24h]))",
+          "expr": "sum(increase(agrosolutions_rabbitmq_errors_total[24h]))",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"

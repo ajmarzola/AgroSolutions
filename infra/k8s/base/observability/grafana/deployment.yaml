@@ -21,6 +21,8 @@ spec:
         - containerPort: 3000
           name: http
         env:
+        - name: GF_INSTALL_PLUGINS
+          value: "grafana-mssql-datasource"
         - name: GF_SECURITY_ADMIN_USER
           valueFrom:
             secretKeyRef:
