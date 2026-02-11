@@ -8,6 +8,8 @@ resources:
 - ../../base/propriedades
 - ../../base/usuarios
 - ../../base/observability
+- ../../base/sqlserver-deployment.yaml
+- ../../base/db-init-job.yaml
 - ../../rabbitmq
 - monitoring/servicemonitors.yaml
 images:

@@ -34,6 +34,7 @@ metadata:
   name: propriedades-config
 data:
   ASPNETCORE_ENVIRONMENT: Development
+  ConnectionStrings__DefaultConnection: "Server=sql-service;Database=AgroSolutionsPropriedades;User Id=sa;Password=Password123!;TrustServerCertificate=True;"
   OpenTelemetry__Enabled: "true"
   OpenTelemetry__Endpoint: "http://jaeger-collector:4317"
   Jwt__Key: "segredo_super_secreto_para_desenvolvimento_local"
