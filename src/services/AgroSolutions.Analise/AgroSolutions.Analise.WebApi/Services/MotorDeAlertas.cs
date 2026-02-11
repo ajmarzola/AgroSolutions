@@ -1,15 +1,23 @@
 using AgroSolutions.Analise.WebApi.Domain;
+using AgroSolutions.Analise.WebApi.Infrastructure.Repositorios;
 
 namespace AgroSolutions.Analise.WebApi.Services;
 
 public interface IMotorDeAlertas
 {
-    List<Alerta> AvaliarLeitura(Leitura leitura);
+    Task<List<Alerta>> AvaliarLeituraAsync(Leitura leitura);
 }
 
 public class MotorDeAlertas : IMotorDeAlertas
 {
-    public List<Alerta> AvaliarLeitura(Leitura leitura)
+    private readonly IAnaliseRepositorio _repositorio;
+
+    public MotorDeAlertas(IAnaliseRepositorio repositorio)
+    {
+        _repositorio = repositorio;
+    }
+
+    public async Task<List<Alerta>> AvaliarLeituraAsync(Leitura leitura)
     {
         var alertas = new List<Alerta>();
 
@@ -25,6 +33,13 @@ public class MotorDeAlertas : IMotorDeAlertas
         {
             if (leitura.UmidadeSoloPercentual < 20)
                 alertas.Add(CriarAlerta(leitura, "Seca Extrema (Umidade < 20%)", "Critical"));
+            
+            // Nova regra de negócio: Risco de Seca (Umidade < 30% nas últimas 24h)
+            var ultimasLeituras = await _repositorio.GetLeiturasUltimas24HorasAsync(leitura.IdTalhao);
+            if (ultimasLeituras.Any() && ultimasLeituras.All(l => l.UmidadeSoloPercentual < 30))
+            {
+                 alertas.Add(CriarAlerta(leitura, "Risco de Seca: Umidade abaixo de 30% por 24h", "Warning"));
+            }
         }
 
         return alertas;

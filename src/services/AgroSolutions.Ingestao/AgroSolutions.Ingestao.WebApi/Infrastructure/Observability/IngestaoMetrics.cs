@@ -13,7 +13,7 @@ public class IngestaoMetrics
     public IngestaoMetrics(IMeterFactory meterFactory)
     {
         _meter = meterFactory.Create(MeterName);
-        LeiturasTotal = _meter.CreateCounter<long>("agrosolutions_sensor_readings_total", description: "Contador de Leituras Recebidas");
+        LeiturasTotal = _meter.CreateCounter<long>("agrosolutions_sensor_readings_count", description: "Contador de Leituras Recebidas");
         RabbitMqErrorsTotal = _meter.CreateCounter<long>("agrosolutions_rabbitmq_errors_total", description: "Falhas de Mensageria");
     }
 }

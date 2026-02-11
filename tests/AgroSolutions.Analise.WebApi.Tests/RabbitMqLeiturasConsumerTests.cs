@@ -76,8 +76,8 @@ public class RabbitMqLeiturasConsumerTests
         var json = JsonSerializer.Serialize(evento);
 
         // Setup Motor behavior
-        _motorMock.Setup(m => m.AvaliarLeitura(It.IsAny<Leitura>()))
-            .Returns(new List<Alerta> { new Alerta { Mensagem = "Teste" } });
+        _motorMock.Setup(m => m.AvaliarLeituraAsync(It.IsAny<Leitura>()))
+            .ReturnsAsync(new List<Alerta> { new Alerta { Mensagem = "Teste" } });
 
         // Act
         // Invoke internal method 'ProcessarMensagemAsync'
@@ -90,7 +90,7 @@ public class RabbitMqLeiturasConsumerTests
 
         // Assert
         _repositorioMock.Verify(r => r.SalvarLeituraAsync(It.IsAny<Leitura>()), Times.Once);
-        _motorMock.Verify(m => m.AvaliarLeitura(It.IsAny<Leitura>()), Times.Once);
+        _motorMock.Verify(m => m.AvaliarLeituraAsync(It.IsAny<Leitura>()), Times.Once);
         _repositorioMock.Verify(r => r.SalvarAlertaAsync(It.IsAny<Alerta>()), Times.Once);
     }
 }

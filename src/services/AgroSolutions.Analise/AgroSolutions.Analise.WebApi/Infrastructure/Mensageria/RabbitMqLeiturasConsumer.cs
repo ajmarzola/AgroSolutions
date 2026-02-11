@@ -127,7 +127,7 @@ public class RabbitMqLeiturasConsumer : BackgroundService
             await repositorio.SalvarLeituraAsync(leitura);
 
             // 2. Motor de Alertas
-            var alertas = motorAlertas.AvaliarLeitura(leitura);
+            var alertas = await motorAlertas.AvaliarLeituraAsync(leitura);
             foreach (var alerta in alertas)
             {
                 await repositorio.SalvarAlertaAsync(alerta);

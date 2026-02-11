@@ -62,6 +62,17 @@ public sealed class AnaliseRepositorio : IAnaliseRepositorio
         await conn.ExecuteAsync(sql, alerta);
     }
 
+    public async Task<IEnumerable<Leitura>> GetLeiturasUltimas24HorasAsync(Guid talhaoId)
+    {
+        const string sql = @"
+            SELECT * FROM dbo.Leitura 
+            WHERE IdTalhao = @IdTalhao 
+            AND DataHoraCapturaUtc >= DATEADD(hour, -24, GETUTCDATE())
+        ";
+        await using var conn = _connectionFactory.Create();
+        return await conn.QueryAsync<Leitura>(sql, new { IdTalhao = talhaoId });
+    }
+
     public async Task<IEnumerable<Leitura>> ListarLeiturasAsync(Guid? idTalhao, int top = 100)
     {
         var sql = "SELECT TOP (@Top) * FROM dbo.Leitura";
