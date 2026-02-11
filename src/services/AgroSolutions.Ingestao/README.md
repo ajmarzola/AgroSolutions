@@ -37,8 +37,11 @@ Configuração (appsettings):
 - `RabbitMq.RoutingKeyLeituraRecebida` (default: `ingestao.leitura_sensor_recebida`)
 
 ### Autenticação/JWT
-A autenticação (JWT) será adicionada posteriormente pelo serviço **AgroSolutions.Usuarios**.  
-Nesta etapa, o Ingestão está preparado para incorporar `[Authorize]` e validar claims/scopes, sem mudar o contrato dos endpoints.
+O simulador realiza autenticação completa:
+1. Realiza login no serviço **AgroSolutions.Usuarios** (endpoint `/login`) para obter um token JWT.
+2. Utiliza esse token para enviar leituras ao serviço de Ingestão (`POST /api/v1/leituras-sensores` com header `Authorization: Bearer <token>`).
+
+O serviço de Ingestão valida o token e as claims de acesso antes de aceitar a leitura.
 
 ---
 

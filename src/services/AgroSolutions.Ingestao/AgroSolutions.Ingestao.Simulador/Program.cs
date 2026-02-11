@@ -8,7 +8,7 @@ using OpenTelemetry.Trace;
 using OpenTelemetry.Resources;
 
 // Configuração OpenTelemetry (Tracing)
-var otelEnabled = Environment.GetEnvironmentVariable("OpenTelemetry_Enabled") == "true" || true; // Default true or check config
+var otelEnabled = Environment.GetEnvironmentVariable("OpenTelemetry_Enabled") == "true";
 var otelEndpoint = Environment.GetEnvironmentVariable("OpenTelemetry_Endpoint") ?? "http://localhost:4317";
 
 using var tracerProvider = otelEnabled ? Sdk.CreateTracerProviderBuilder()

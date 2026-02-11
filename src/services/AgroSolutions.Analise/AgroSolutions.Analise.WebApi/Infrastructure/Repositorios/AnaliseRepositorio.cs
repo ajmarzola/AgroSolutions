@@ -98,4 +98,25 @@ public sealed class AnaliseRepositorio : IAnaliseRepositorio
         await using var conn = _connectionFactory.Create();
         return await conn.QueryAsync<Alerta>(sql, new { IdTalhao = idTalhao, Top = top });
     }
+
+    public async Task<bool> ExisteAlertaRecenteAsync(Guid talhaoId, string trechoMensagem, DateTime dataCorte)
+    {
+        const string sql = @"
+            SELECT TOP 1 1 
+            FROM dbo.Alerta 
+            WHERE IdTalhao = @IdTalhao 
+            AND Mensagem LIKE @MsgPattern
+            AND DataHoraGeracaoUtc >= @DataCorte
+        ";
+
+        await using var conn = _connectionFactory.Create();
+        var result = await conn.ExecuteScalarAsync<int?>(sql, new
+        {
+            IdTalhao = talhaoId,
+            MsgPattern = $"%{trechoMensagem}%",
+            DataCorte = dataCorte
+        });
+
+        return result.HasValue;
+    }
 }

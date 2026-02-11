@@ -1,13 +1,13 @@
 # AgroSolutions.Usuarios
 
-Microsserviço responsável pela **gestão de usuários, autenticação e autorização**. Utilitza JWT para proteção dos demais serviços.
+Microsserviço responsável pela **gestão de usuários, autenticação e autorização**. Utilitza JWT para proteção dos demais serviços, incluindo autenticação do Simulador (Machine-to-Machine).
 
 ---
 
 ## 🚀 Como Rodar
 
 ### Pré-requisitos
-- .NET 8 SDK
+- .NET 10 SDK
 - SQL Server (Entity Framework Core)
 
 ### Executar Localmente

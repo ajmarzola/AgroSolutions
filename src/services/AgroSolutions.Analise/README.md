@@ -7,7 +7,7 @@ Microsserviço responsável por **consumir eventos de leituras de sensores**, pe
 ## 🚀 Como Rodar
 
 ### Pré-requisitos
-- .NET 8 SDK
+- .NET 10 SDK
 - RabbitMQ
 - SQL Server
 

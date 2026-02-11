@@ -9,4 +9,5 @@ public interface IAnaliseRepositorio
     Task<IEnumerable<Leitura>> GetLeiturasUltimas24HorasAsync(Guid talhaoId);
     Task<IEnumerable<Leitura>> ListarLeiturasAsync(Guid? idTalhao, int top = 100);
     Task<IEnumerable<Alerta>> ListarAlertasAsync(Guid? idTalhao, int top = 100);
+    Task<bool> ExisteAlertaRecenteAsync(Guid talhaoId, string trechoMensagem, DateTime dataCorte);
 }

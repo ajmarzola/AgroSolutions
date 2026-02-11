@@ -7,7 +7,7 @@ Microsserviço responsável pelo **cadastro de Propriedades, Talhões e Disposit
 ## 🚀 Como Rodar
 
 ### Pré-requisitos
-- .NET 8 SDK
+- .NET 10 SDK
 - SQL Server
 
 ### Executar Localmente

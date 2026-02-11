@@ -45,7 +45,7 @@ Plataforma de referência para **agricultura de precisão**, com ingestão e an�
 - **AgroSolutions.Propriedades.WebApi** – Cadastro de propriedades e talhões.
 - **AgroSolutions.Ingestao.WebApi** – Recepção de leituras de sensores e persistência.
 - **AgroSolutions.Analise.WebApi** – Processamento e análise de dados.
-- **AgroSolutions.Ingestao.Simulador** – Console app para gerar leituras simuladas.
+- **AgroSolutions.Ingestao.Simulador** – Console app para gerar leituras simuladas (Fluxo: Login em Usuarios -> Token JWT -> Post em Ingestao).
 
 Cada serviço é independente, containerizado e orquestrado via Kubernetes.
 

@@ -35,10 +35,21 @@ public class MotorDeAlertas : IMotorDeAlertas
                 alertas.Add(CriarAlerta(leitura, "Seca Extrema (Umidade < 20%)", "Critical"));
             
             // Nova regra de negócio: Risco de Seca (Umidade < 30% nas últimas 24h)
-            var ultimasLeituras = await _repositorio.GetLeiturasUltimas24HorasAsync(leitura.IdTalhao);
-            if (ultimasLeituras.Any() && ultimasLeituras.All(l => l.UmidadeSoloPercentual < 30))
+            // Requisito: Pelo menos 10 leituras no período
+            var ultimasLeituras = (await _repositorio.GetLeiturasUltimas24HorasAsync(leitura.IdTalhao)).ToList();
+            if (ultimasLeituras.Count >= 10 && ultimasLeituras.All(l => l.UmidadeSoloPercentual < 30))
             {
-                 alertas.Add(CriarAlerta(leitura, "Risco de Seca: Umidade abaixo de 30% por 24h", "Warning"));
+                 // Verificar se já existe um alerta 'Ativo' (recente) para evitar spam
+                 var existeAlertaRecente = await _repositorio.ExisteAlertaRecenteAsync(
+                     leitura.IdTalhao, 
+                     "Risco de Seca", 
+                     DateTime.UtcNow.AddHours(-24)
+                 );
+
+                 if (!existeAlertaRecente)
+                 {
+                    alertas.Add(CriarAlerta(leitura, "Risco de Seca: Umidade abaixo de 30% por 24h", "Warning"));
+                 }
             }
         }
 
