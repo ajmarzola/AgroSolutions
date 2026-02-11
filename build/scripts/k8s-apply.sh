@@ -10,7 +10,7 @@ if [[ ! -d "${OVERLAY_DIR}" ]]; then
 fi
 
 # Namespace é definido no kustomization.yaml; ainda assim, é comum garantir que exista.
-NAMESPACE="$(grep -E '^namespace:' "${OVERLAY_DIR}/kustomization.yaml" | awk '{print $2}' || true)"
+NAMESPACE="$(grep -E '^namespace:' "${OVERLAY_DIR}/kustomization.yaml" | awk '{print $2}' | tr -d '\r' || true)"
 
 if [[ -n "${NAMESPACE}" ]]; then
   echo "Ensuring namespace exists: ${NAMESPACE}"

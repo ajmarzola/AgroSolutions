@@ -122,15 +122,18 @@ docker system prune -a --volumes
 
 ---
 
-## 🌐 Acesso aos serviços (port-forward)
+## 🌐 Acesso aos serviços (NodePort)
 
-| Serviço | Porta Interna | Comando (Exemplo) | URL |
-|---------|---------------|-------------------|-----|
-| **Usuários** | 80 | `kubectl port-forward svc/usuarios 8081:80 -n agrosolutions-local` | [http://localhost:8081/swagger](http://localhost:8081/swagger) |
-| **Propriedades** | 80 | `kubectl port-forward svc/propriedades 8082:80 -n agrosolutions-local` | [http://localhost:8082/swagger](http://localhost:8082/swagger) |
-| **Ingestão** | 80 | `kubectl port-forward svc/ingestao 8083:80 -n agrosolutions-local` | [http://localhost:8083/swagger](http://localhost:8083/swagger) |
-| **Análise** | 80 | `kubectl port-forward svc/analise 8084:80 -n agrosolutions-local` | [http://localhost:8084/swagger](http://localhost:8084/swagger) |
-| **Grafana** | 80 (ou 3000) | Consultar documentação específica | [Ver Docs Grafana](../observability/grafana/README.md) |
+No ambiente local, os serviços são expostos via **NodePort**.
+
+| Serviço | Porta | URL |
+|---------|---------------|-----|
+| **Usuários** | 30001 | [http://localhost:30001/swagger](http://localhost:30001/swagger) |
+| **Propriedades** | 30002 | [http://localhost:30002/swagger](http://localhost:30002/swagger) |
+| **Ingestão** | 30003 | [http://localhost:30003/swagger](http://localhost:30003/swagger) |
+| **Análise** | 30004 | [http://localhost:30004/swagger](http://localhost:30004/swagger) |
+| **RabbitMQ** | 30006 | [http://localhost:30006](http://localhost:30006) (Login: user / Senha: password) |
+| **Grafana** | - | [Ver Docs Grafana](../observability/grafana/README.md) |
 
 ---
 

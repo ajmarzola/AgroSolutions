@@ -12,11 +12,20 @@ var builder = WebApplication.CreateBuilder(args);
 
 // 1. Banco de Dados com Resili�ncia
 var conn = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddDbContext<AgroDbContext>(options =>
-    options.UseSqlServer(conn, sqlOptions =>
-    {
-        sqlOptions.EnableRetryOnFailure(5, TimeSpan.FromSeconds(30), null);
-    }));
+
+if (string.IsNullOrEmpty(conn) || builder.Configuration.GetValue<bool>("SqlServer:UseInMemory"))
+{
+    builder.Services.AddDbContext<AgroDbContext>(options =>
+        options.UseInMemoryDatabase("AgroSolutionsUsuariosDb"));
+}
+else
+{
+    builder.Services.AddDbContext<AgroDbContext>(options =>
+        options.UseSqlServer(conn, sqlOptions =>
+        {
+            sqlOptions.EnableRetryOnFailure(5, TimeSpan.FromSeconds(30), null);
+        }));
+}
 
 // 2. Autentica��o JWT - Valida��o da Chave
 var jwtKey = builder.Configuration["Jwt:Key"];
@@ -98,7 +107,15 @@ app.UseSwaggerUI(c => {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "AgroSolutions API v1");
 });
 
-app.MapHealthChecks("/health");
+app.MapHealthChecks("/health/live", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+{
+    Predicate = _ => false
+});
+app.MapHealthChecks("/health/ready", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+{
+    Predicate = _ => true
+});
+
 app.UseOpenTelemetryPrometheusScrapingEndpoint();
 
 app.UseAuthentication();

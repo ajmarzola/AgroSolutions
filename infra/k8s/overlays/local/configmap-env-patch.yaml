@@ -6,6 +6,9 @@ data:
   ASPNETCORE_ENVIRONMENT: Development
   OpenTelemetry__Enabled: "true"
   OpenTelemetry__Endpoint: "http://jaeger-collector:4317"
+  Jwt__Key: "segredo_super_secreto_para_desenvolvimento_local"
+  Jwt__Issuer: "AgroSolutions"
+  Jwt__Audience: "AgroSolutions"
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -20,6 +23,9 @@ data:
   # Para o Simulador (que l variveis tambm)
   OpenTelemetry_Enabled: "true"
   OpenTelemetry_Endpoint: "http://jaeger-collector:4317"
+  Jwt__Key: "segredo_super_secreto_para_desenvolvimento_local"
+  Jwt__Issuer: "AgroSolutions"
+  Jwt__Audience: "AgroSolutions"
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -29,6 +35,9 @@ data:
   ASPNETCORE_ENVIRONMENT: Development
   OpenTelemetry__Enabled: "true"
   OpenTelemetry__Endpoint: "http://jaeger-collector:4317"
+  Jwt__Key: "segredo_super_secreto_para_desenvolvimento_local"
+  Jwt__Issuer: "AgroSolutions"
+  Jwt__Audience: "AgroSolutions"
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -38,4 +47,8 @@ data:
   ASPNETCORE_ENVIRONMENT: Development
   OpenTelemetry__Enabled: "true"
   OpenTelemetry__Endpoint: "http://jaeger-collector:4317"
+  Jwt__Key: "segredo_super_secreto_para_desenvolvimento_local"
+  Jwt__Issuer: "AgroSolutions"
+  Jwt__Audience: "AgroSolutions"
+  SqlServer__UseInMemory: "true"
 

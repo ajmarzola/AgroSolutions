@@ -8,6 +8,7 @@ resources:
 - ../../base/propriedades
 - ../../base/usuarios
 - ../../base/observability
+- ../../rabbitmq
 - monitoring/servicemonitors.yaml
 images:
 - name: analise
@@ -34,3 +35,4 @@ patchesStrategicMerge:
 - configmap-env-patch.yaml
 - ingestao-replicas.patch.yaml
 - monitoring/service-labels.patch.yaml
+- service-nodeport.patch.yaml

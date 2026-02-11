@@ -27,13 +27,9 @@ kubectl apply -k .
 
 ## Acessando o Painel de Gerenciamento (Management UI)
 
-O plugin de gerenciamento está habilitado na porta 15672. Como o serviço é do tipo ClusterIP, ele não é exposto publicamente por padrão. Para acessá-lo localmente via `port-forward`:
+O plugin de gerenciamento está habilitado na porta 15672 (interna). No ambiente local, ele é exposto na porta **30006**.
 
-```bash
-kubectl port-forward svc/rabbitmq 15672:15672
-```
-
-Em seguida, acesse no navegador: [http://localhost:15672](http://localhost:15672)
+Acesse no navegador: [http://localhost:30006](http://localhost:30006)
 
 ## Credenciais
 

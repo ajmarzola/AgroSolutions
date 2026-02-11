@@ -30,17 +30,14 @@ kubectl get pods -n agrosolutions-local
 
 As APIs expÃµem mÃ©tricas em `/metrics` (OpenTelemetry/Prometheus). Para validar rapidamente:
 
-```bash
-kubectl port-forward svc/ingestao 8083:80 -n agrosolutions-local
-```
+**Via NodePort:**
 
-Em outra janela:
+- **IngestÃ£o**: [http://localhost:30003/metrics](http://localhost:30003/metrics)
+- **AnÃ¡lise**: [http://localhost:30004/metrics](http://localhost:30004/metrics)
+- **Propriedades**: [http://localhost:30002/metrics](http://localhost:30002/metrics)
+- **UsuÃ¡rios**: [http://localhost:30001/metrics](http://localhost:30001/metrics)
 
-```bash
-curl http://localhost:8083/metrics
-```
-
-Repita para **analise**, **propriedades** e **usuarios** (alterando a porta local). Se houver saÃ­da de mÃ©tricas, o endpoint estÃ¡ OK.
+Se houver saÃ­da de mÃ©tricas, o endpoint estÃ¡ OK.
 
 ---
 
@@ -172,15 +169,15 @@ kubectl get servicemonitors -n agrosolutions-observability
 
 ---
 
-## ?? Rastreamento Distribuído (Distributed Tracing)
+## ?? Rastreamento Distribuï¿½do (Distributed Tracing)
 
-O rastreamento distribuído permite acompanhar o ciclo de vida de uma requisição que perpassa diversos serviços. Utilizamos **OpenTelemetry** para instrumentação e **Jaeger** para visualização.
+O rastreamento distribuï¿½do permite acompanhar o ciclo de vida de uma requisiï¿½ï¿½o que perpassa diversos serviï¿½os. Utilizamos **OpenTelemetry** para instrumentaï¿½ï¿½o e **Jaeger** para visualizaï¿½ï¿½o.
 
 ### 1. Acessando a Interface do Jaeger
 
-O Jaeger UI é o local onde você pode visualizar os traces.
+O Jaeger UI ï¿½ o local onde vocï¿½ pode visualizar os traces.
 
-Para acessar localmente, faça o port-forward do serviço do Jaeger (que roda no namespace grosolutions-local):
+Para acessar localmente, faï¿½a o port-forward do serviï¿½o do Jaeger (que roda no namespace grosolutions-local):
 
 \\\ash
 kubectl port-forward svc/jaeger-collector 16686:16686 -n agrosolutions-local
@@ -190,22 +187,22 @@ Em seguida, acesse no navegador: **[http://localhost:16686](http://localhost:166
 
 ### 2. Gerando e Visualizando Traces
 
-1.  **Gere Tráfego**: Utilize o Simulador ou faça chamadas aos endpoints da Ingestao.WebApi.
+1.  **Gere Trï¿½fego**: Utilize o Simulador ou faï¿½a chamadas aos endpoints da Ingestao.WebApi.
 2.  **Busque no Jaeger**:
-    *   No menu esquerdo 'Service', selecione \AgroSolutions.Ingestao.WebApi\ (ou outro serviço).
+    *   No menu esquerdo 'Service', selecione \AgroSolutions.Ingestao.WebApi\ (ou outro serviï¿½o).
     *   Clique em **Find Traces**.
-    *   Você verá uma lista de requisições. Clique em uma para ver o detalhe.
-3.  **Trace Distribuído**: Se a requisição envolver múltiplos serviços, você verá as 'spans' de cada serviço aninhadas, permitindo identificar gargalos de latência.
+    *   Vocï¿½ verï¿½ uma lista de requisiï¿½ï¿½es. Clique em uma para ver o detalhe.
+3.  **Trace Distribuï¿½do**: Se a requisiï¿½ï¿½o envolver mï¿½ltiplos serviï¿½os, vocï¿½ verï¿½ as 'spans' de cada serviï¿½o aninhadas, permitindo identificar gargalos de latï¿½ncia.
 
-### 3. Validação
+### 3. Validaï¿½ï¿½o
 
-Certifique-se que o serviço \jaeger\ está rodando:
+Certifique-se que o serviï¿½o \jaeger\ estï¿½ rodando:
 
 \\\ash
 kubectl get pods -l app=jaeger -n agrosolutions-local
 \\\
 
-Se não houver traços, verifique se a variável de ambiente \OpenTelemetry__Enabled\ está como 'true' e se o endpoint \http://jaeger-collector:4317\ está acessível pelos pods.
+Se nï¿½o houver traï¿½os, verifique se a variï¿½vel de ambiente \OpenTelemetry__Enabled\ estï¿½ como 'true' e se o endpoint \http://jaeger-collector:4317\ estï¿½ acessï¿½vel pelos pods.
 
 
 ---
