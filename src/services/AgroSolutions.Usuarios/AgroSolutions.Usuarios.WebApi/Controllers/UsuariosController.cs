@@ -1,6 +1,6 @@
 ﻿using AgroSolutions.Usuarios.WebApi.Data;
-using AgroSolutions.Usuarios.WebApi.Entity;
 using AgroSolutions.Usuarios.WebApi.DTOs;
+using AgroSolutions.Usuarios.WebApi.Entity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -38,8 +38,10 @@ namespace AgroSolutions.Usuarios.WebApi.Controllers
 
             var tokenHandler = new JwtSecurityTokenHandler();
             string keyString = _config["Jwt:Key"];
-            if (string.IsNullOrEmpty(keyString)) return StatusCode(500, "Internal Server Error: Jwt Key missing");
-
+            if (string.IsNullOrEmpty(keyString))
+            {
+                throw new InvalidOperationException("JWT Key não configurada.");
+            }
             var key = Encoding.ASCII.GetBytes(keyString);
 
             var tokenDescriptor = new SecurityTokenDescriptor
@@ -58,18 +60,18 @@ namespace AgroSolutions.Usuarios.WebApi.Controllers
         }
 
         [HttpPost("registrar")]
-        public async Task<IActionResult> Registrar([FromBody] RegistroUsuarioDto dto)
+        public async Task<IActionResult> Registrar([FromBody] UsuarioRegistroDto usuarioDto)
         {
-            if (await _context.Usuarios.AnyAsync(u => u.Email == dto.Email))
+            if (await _context.Usuarios.AnyAsync(u => u.Email == usuarioDto.Email))
             {
                 return BadRequest("E-mail já cadastrado.");
             }
 
             var usuario = new Usuario
             {
-                Email = dto.Email,
-                Senha = BCrypt.Net.BCrypt.HashPassword(dto.Senha),
-                TipoId = dto.TipoId
+                Email = usuarioDto.Email,
+                Senha = BCrypt.Net.BCrypt.HashPassword(usuarioDto.Senha),
+                TipoId = usuarioDto.TipoId
             };
 
             _context.Usuarios.Add(usuario);
@@ -79,13 +81,14 @@ namespace AgroSolutions.Usuarios.WebApi.Controllers
 
         [Authorize]
         [HttpGet]
-        public async Task<ActionResult<List<UsuarioDto>>> ListarTodos()
+        public async Task<IActionResult> ListarTodos()
         {
-            var usuarios = await _context.Usuarios.Include(u => u.Tipo)
-                .Select(u => new UsuarioDto
-                {
-                    Id = u.Id,
-                    Email = u.Email,
+            var usuarios = await _context.Usuarios
+                .Include(u => u.Tipo)
+                .Select(u => new UsuarioResponseDto 
+                { 
+                    Id = u.Id, 
+                    Email = u.Email, 
                     TipoDescricao = u.Tipo != null ? u.Tipo.Descricao : "N/A"
                 })
                 .ToListAsync();

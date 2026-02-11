@@ -32,7 +32,7 @@ public sealed class RabbitMqEventoPublisher : IEventoPublisher, IDisposable
             NetworkRecoveryInterval = TimeSpan.FromSeconds(5)
         };
         
-        // Retry connection roughly
+        // Tenta reconectar de forma resiliente
         var connectPolicy = Policy.Handle<Exception>()
             .WaitAndRetry(5, r => TimeSpan.FromSeconds(Math.Pow(2, r)));
 
@@ -40,7 +40,7 @@ public sealed class RabbitMqEventoPublisher : IEventoPublisher, IDisposable
         _channel = _connection.CreateModel();
 
         _channel.ExchangeDeclare(exchange: _options.Exchange, type: ExchangeType.Topic, durable: true, autoDelete: false);
-        _channel.ConfirmSelect(); // Publisher Confirms
+        _channel.ConfirmSelect(); // Confirmações do Publicador (Publisher Confirms)
 
         _retryPolicy = Policy
             .Handle<Exception>()

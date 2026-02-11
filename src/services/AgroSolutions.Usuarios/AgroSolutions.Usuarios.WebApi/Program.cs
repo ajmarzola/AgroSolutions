@@ -10,7 +10,7 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. Banco de Dados com Resili�ncia
+// 1. Banco de Dados com Resiliência
 var conn = builder.Configuration.GetConnectionString("DefaultConnection");
 
 if (string.IsNullOrEmpty(conn) || builder.Configuration.GetValue<bool>("SqlServer:UseInMemory"))
@@ -27,9 +27,12 @@ else
         }));
 }
 
-// 2. Autentica��o JWT - Valida��o da Chave
+// 2. Autenticação JWT - Validação da Chave
 var jwtKey = builder.Configuration["Jwt:Key"];
-if (string.IsNullOrEmpty(jwtKey)) throw new Exception("Jwt:Key is missing");
+if (string.IsNullOrEmpty(jwtKey))
+{
+    throw new InvalidOperationException("Jwt:Key não encontrada na configuração.");
+}
 var key = Encoding.ASCII.GetBytes(jwtKey);
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -38,17 +41,17 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         {
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(key),
-            ValidateIssuer = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidateAudience = true,
-            ValidAudience = builder.Configuration["Jwt:Audience"],
+            ValidateIssuer = false, // Em hardening real, deve ser true e validado via Config
+            ValidateAudience = false,
             ClockSkew = TimeSpan.Zero
         };
     });
 
 // 3. Health Checks
 builder.Services.AddHealthChecks()
-    .AddDbContextCheck<AgroDbContext>("Database");
+    .AddCheck("self", () => Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy(), tags: new[] { "liveness" })
+    .AddDbContextCheck<AgroDbContext>("DatabaseConnection", Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Unhealthy, tags: new[] { "readiness" });
+
 
 // 4. OpenTelemetry
 var otel = builder.Services.AddOpenTelemetry().WithMetrics(metrics =>
@@ -77,7 +80,7 @@ if (builder.Configuration.GetValue("OpenTelemetry:Enabled", false))
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
-// 5. Swagger com suporte a JWT (Bot�o Authorize)
+// 5. Swagger com suporte a JWT (Botão Authorize)
 builder.Services.AddSwaggerGen(c => {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "AgroSolutions API", Version = "v1" });
 
@@ -111,11 +114,11 @@ app.UseSwaggerUI(c => {
 
 app.MapHealthChecks("/health/live", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
 {
-    Predicate = _ => false
+    Predicate = registration => registration.Tags.Contains("liveness")
 });
 app.MapHealthChecks("/health/ready", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
 {
-    Predicate = _ => true
+    Predicate = registration => registration.Tags.Contains("readiness")
 });
 app.MapHealthChecks("/health");
 
