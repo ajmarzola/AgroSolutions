@@ -36,8 +36,13 @@ if (!string.IsNullOrWhiteSpace(options.BearerToken))
     http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", options.BearerToken);
 }
 
+// Auth Client
+var authClient = new AuthClient(options.AuthBaseUrl);
+var currentToken = options.BearerToken;
+
 Console.WriteLine("AgroSolutions.Ingestao.Simulador");
 Console.WriteLine($"BaseUrl: {http.BaseAddress}");
+Console.WriteLine($"AuthUrl: {options.AuthBaseUrl}");
 Console.WriteLine($"Propriedade: {options.IdPropriedade}");
 Console.WriteLine($"Talhoes: {string.Join(", ", options.Talhoes)}");
 Console.WriteLine($"Intervalo: {options.IntervaloSeconds}s | TotalPorTalhao: {options.TotalPorTalhao}");
@@ -46,8 +51,65 @@ Console.WriteLine();
 
 var rnd = new Random(options.Seed);
 
+// Helper para validar JWT (expiração)
+bool IsTokenValid(string? token)
+{
+    if (string.IsNullOrWhiteSpace(token)) return false;
+    try
+    {
+        var parts = token.Split('.');
+        if (parts.Length != 3) return false;
+        var payload = parts[1].Replace('-', '+').Replace('_', '/'); 
+        switch (payload.Length % 4) 
+        {
+            case 2: payload += "=="; break;
+            case 3: payload += "="; break;
+        }
+        var jsonBytes = Convert.FromBase64String(payload);
+        using var doc = JsonDocument.Parse(jsonBytes);
+        if (doc.RootElement.TryGetProperty("exp", out var expElem))
+        {
+            var expUnix = expElem.GetInt64();
+            var expDate = DateTimeOffset.FromUnixTimeSeconds(expUnix);
+            // Considera expirado se faltar menos de 30s
+            return expDate > DateTimeOffset.UtcNow.AddSeconds(30);
+        }
+        return true; 
+    }
+    catch 
+    {
+        return false;
+    }
+}
+
 for (var i = 0; i < options.TotalPorTalhao; i++)
 {
+    // Auth Logic: Renovação de Token
+    if (!IsTokenValid(currentToken))
+    {
+        if (!string.IsNullOrWhiteSpace(options.UserEmail) && !string.IsNullOrWhiteSpace(options.UserPassword))
+        {
+            Console.WriteLine("[AUTH] Token inexistente ou expirado. Tentando login...");
+            var newToken = await authClient.LoginAsync(options.UserEmail, options.UserPassword);
+            if (!string.IsNullOrWhiteSpace(newToken))
+            {
+                currentToken = newToken;
+                http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", currentToken);
+                Console.WriteLine("[AUTH] Token renovado com sucesso.");
+            }
+            else
+            {
+                Console.WriteLine("[AUTH] Falha ao obter token. As requisições podem falhar (401).");
+            }
+        }
+        else
+        {
+            // Apenas loga aviso se não tiver credenciais para renovar
+             if (string.IsNullOrWhiteSpace(currentToken))
+                Console.WriteLine("[AUTH] Sem token e sem credenciais configuradas.");
+        }
+    }
+
     foreach (var idTalhao in options.Talhoes)
     {
         // Simula multi-propriedade para variar métricas de negócio

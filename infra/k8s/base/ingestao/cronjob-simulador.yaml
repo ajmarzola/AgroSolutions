@@ -47,6 +47,18 @@ spec:
                   value: "true"
                 - name: ID_DISPOSITIVO
                   value: "SIM-CRON-001"
+                - name: AUTH_BASE_URL
+                  value: "http://usuarios-service"
+                - name: SIM_USER_EMAIL
+                  valueFrom:
+                    secretKeyRef:
+                      name: simulador-auth-secret
+                      key: email
+                - name: SIM_USER_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: simulador-auth-secret
+                      key: password
               resources:
                 requests:
                   cpu: "50m"

@@ -55,7 +55,18 @@ bash ./build/scripts/docker-build.sh local
 bash ./build/scripts/k8s-apply.sh local
 ```
 
-4) **Verificar recursos**:
+4) **Configurar credenciais (Secret) para o Simulador**:
+> ⚠️ **Necessário para Autenticação JWT**: O Simulador, rodando via CronJob, precisa de credenciais válidas para se autenticar na API de Usuários.
+
+```bash
+# Exemplo com credenciais padrão (ajuste conforme seu banco de dados de usuários)
+kubectl create secret generic simulador-auth-secret \
+  --from-literal=email='admin@agrosolutions.com' \
+  --from-literal=password='admin123' \
+  --namespace agrosolutions-local
+```
+
+5) **Verificar recursos**:
 
 ```bash
 kubectl get pods -n agrosolutions-local

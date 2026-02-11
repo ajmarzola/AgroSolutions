@@ -11,6 +11,9 @@ internal sealed record SimuladorOptions(
     string Fonte,
     string IdDispositivo,
     string? BearerToken,
+    string? UserEmail,
+    string? UserPassword,
+    string AuthBaseUrl,
     int Seed,
     decimal UmidadeMin,
     decimal UmidadeMax,
@@ -31,6 +34,9 @@ internal sealed record SimuladorOptions(
         var fonte = Environment.GetEnvironmentVariable("FONTE") ?? "simulador";
         var idDispositivo = Environment.GetEnvironmentVariable("ID_DISPOSITIVO") ?? "SIM-001";
         var token = Environment.GetEnvironmentVariable("BEARER_TOKEN");
+        var userEmail = Environment.GetEnvironmentVariable("SIM_USER_EMAIL");
+        var userPassword = Environment.GetEnvironmentVariable("SIM_USER_PASSWORD");
+        var authBaseUrl = Environment.GetEnvironmentVariable("AUTH_BASE_URL") ?? "http://usuarios-service";
         var seed = TryInt(Environment.GetEnvironmentVariable("SEED"), Environment.TickCount);
 
         var umidadeMin = TryDec(Environment.GetEnvironmentVariable("UMIDADE_MIN"), 25m);
@@ -58,6 +64,9 @@ internal sealed record SimuladorOptions(
                 case "idpropriedade": idPropriedadeRaw = value; break;
                 case "intervalo": intervalo = TryInt(value, intervalo); break;
                 case "total": total = TryInt(value, total); break;
+                case "email": userEmail = value; break;
+                case "password": userPassword = value; break;
+                case "authurl": authBaseUrl = value; break;
                 case "fonte": fonte = value; break;
                 case "dispositivo": idDispositivo = value; break;
                 case "token": token = value; break;
@@ -87,6 +96,9 @@ internal sealed record SimuladorOptions(
         return new SimuladorOptions(
             baseUrl,
             idPropriedade,
+            userEmail,
+            userPassword,
+            authBaseUrl,
             talhoes,
             intervalo,
             total,
