@@ -79,7 +79,7 @@ for (var i = 0; i < options.TotalPorTalhao; i++)
             }
             else
             {
-                Console.WriteLine($"[OK] Talhao={idTalhao} CapturaUtc={leitura.DataHoraCapturaUtc:o} Umidade={leitura.UmidadeSolo}% Temp={leitura.TemperaturaC}C Chuva={leitura.PrecipitacaoMm}mm");
+                Console.WriteLine($"[OK] Talhao={idTalhao} CapturaUtc={leitura.DataHoraCapturaUtc:o} Umidade={leitura.Metricas.UmidadeSoloPercentual}% Temp={leitura.Metricas.TemperaturaCelsius}C Chuva={leitura.Metricas.PrecipitacaoMilimetros}mm");
             }
         }
         catch (Exception ex)

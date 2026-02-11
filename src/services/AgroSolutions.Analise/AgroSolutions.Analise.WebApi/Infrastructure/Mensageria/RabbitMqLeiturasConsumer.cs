@@ -19,7 +19,7 @@ public class RabbitMqLeiturasConsumer : BackgroundService
     private readonly ILogger<RabbitMqLeiturasConsumer> _logger;
     private readonly AnaliseMetrics _metrics;
     private IConnection? _connection;
-    private IModel? _channel;
+    private IChannel? _channel;
 
     public RabbitMqLeiturasConsumer(
         IOptions<RabbitMqOptions> options,
@@ -33,12 +33,12 @@ public class RabbitMqLeiturasConsumer : BackgroundService
         _metrics = metrics;
     }
 
-    protected override Task ExecuteAsync(CancellationToken stoppingToken)
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         if (!_options.Enabled)
         {
             _logger.LogInformation("Consumer RabbitMQ desabilitado.");
-            return Task.CompletedTask;
+            return;
         }
 
         var factory = new ConnectionFactory
@@ -47,47 +47,46 @@ public class RabbitMqLeiturasConsumer : BackgroundService
             Port = _options.Port,
             UserName = _options.UserName,
             Password = _options.Password,
-            DispatchConsumersAsync = true,
             AutomaticRecoveryEnabled = true
         };
 
         try 
         {
             var policy = Policy.Handle<Exception>()
-                .WaitAndRetry(5, r => TimeSpan.FromSeconds(Math.Pow(2, r)), (ex, time) => 
+                .WaitAndRetryAsync(5, r => TimeSpan.FromSeconds(Math.Pow(2, r)), (ex, time) => 
                 {
                     _logger.LogWarning(ex, "Falha ao conectar ao RabbitMQ, retentando em {Seconds}s...", time.TotalSeconds);
                 });
 
-            _connection = policy.Execute(() => factory.CreateConnection());
-            _channel = _connection.CreateModel();
+            _connection = await policy.ExecuteAsync(async () => await factory.CreateConnectionAsync());
+            _channel = await _connection.CreateChannelAsync();
 
-            _channel.ExchangeDeclare(_options.Exchange, ExchangeType.Topic, durable: true, autoDelete: false);
-            _channel.QueueDeclare(_options.QueueAnalise, durable: true, exclusive: false, autoDelete: false);
-            _channel.QueueBind(_options.QueueAnalise, _options.Exchange, _options.RoutingKeyLeituraRecebida); // Bind correto
+            await _channel.ExchangeDeclareAsync(_options.Exchange, ExchangeType.Topic, durable: true, autoDelete: false);
+            await _channel.QueueDeclareAsync(_options.QueueAnalise, durable: true, exclusive: false, autoDelete: false);
+            await _channel.QueueBindAsync(_options.QueueAnalise, _options.Exchange, _options.RoutingKeyLeituraRecebida); // Bind correto
 
-            _channel.BasicQos(0, 10, false); // PrefetchCount = 10
+            await _channel.BasicQosAsync(0, 10, false); // PrefetchCount = 10
 
             var consumer = new AsyncEventingBasicConsumer(_channel);
-            consumer.Received += async (model, ea) =>
+            consumer.ReceivedAsync += async (sender, ea) =>
             {
                 var body = ea.Body.ToArray();
                 var message = Encoding.UTF8.GetString(body);
-                
+
                 try
                 {
                     await ProcessarMensagemAsync(message);
-                    _channel.BasicAck(ea.DeliveryTag, false);
+                    await _channel.BasicAckAsync(ea.DeliveryTag, false);
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Erro ao processar mensagem. Rejeitando.");
                     // Em produção, considerar estratégia de Dead Letter Queue (DLQ)
-                    _channel.BasicNack(ea.DeliveryTag, false, requeue: false); 
+                    await _channel.BasicNackAsync(ea.DeliveryTag, false, requeue: false); 
                 }
             };
 
-            _channel.BasicConsume(queue: _options.QueueAnalise, autoAck: false, consumer: consumer);
+            await _channel.BasicConsumeAsync(queue: _options.QueueAnalise, autoAck: false, consumer: consumer);
             _logger.LogInformation("Consumer RabbitMQ iniciado na fila {Queue}", _options.QueueAnalise);
         }
         catch (Exception ex)
@@ -95,7 +94,7 @@ public class RabbitMqLeiturasConsumer : BackgroundService
              _logger.LogCritical(ex, "Não foi possível iniciar o consumer RabbitMQ.");
         }
 
-        return Task.CompletedTask;
+        return;
     }
 
     private async Task ProcessarMensagemAsync(string json)
@@ -142,8 +141,8 @@ public class RabbitMqLeiturasConsumer : BackgroundService
 
     public override void Dispose()
     {
-        _channel?.Close();
-        _connection?.Close();
+        _channel?.Dispose();
+        _connection?.Dispose();
         base.Dispose();
     }
 }
