@@ -4,6 +4,7 @@ using AgroSolutions.Propriedades.WebApi.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AgroSolutions.Propriedades.WebApi.Data.Migrations
 {
     [DbContext(typeof(PropriedadesDbContext))]
-    partial class PropriedadesDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260212125926_AddOwnerUserId")]
+    partial class AddOwnerUserId
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

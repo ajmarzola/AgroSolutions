@@ -8,3 +8,4 @@ metadata:
 data:
   Logging__LogLevel__Default: Information
   Identity__BaseUrl: http://propriedades
+  Db__AutoMigrate: "true"

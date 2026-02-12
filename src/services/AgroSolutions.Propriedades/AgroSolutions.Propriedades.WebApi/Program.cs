@@ -104,11 +104,14 @@ app.MapHealthChecks("/health/ready", new HealthCheckOptions
 app.MapPrometheusScrapingEndpoint();
 
 // Auto-Migration (Hackathon Mode)
-using (var scope = app.Services.CreateScope())
+if (app.Configuration.GetValue<bool>("Db:AutoMigrate"))
 {
-    var context = scope.ServiceProvider.GetRequiredService<PropriedadesDbContext>();
-    context.Database.Migrate();
+    using (var scope = app.Services.CreateScope())
+    {
+        var context = scope.ServiceProvider.GetRequiredService<PropriedadesDbContext>();
+        context.Database.Migrate();
+    }
 }
-app.MapPrometheusScrapingEndpoint();
+
 
 app.Run();

@@ -4,6 +4,7 @@ using AgroSolutions.Propriedades.WebApi.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace AgroSolutions.Propriedades.WebApi.Controllers;
 
@@ -19,9 +20,13 @@ public class PropriedadesController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize]
     public async Task<ActionResult<IEnumerable<PropriedadeDto>>> GetPropriedades()
     {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
         var propriedades = await _context.Propriedades
+            .Where(p => p.OwnerUserId == userId)
             .Select(p => new PropriedadeDto(p.Id, p.Nome, p.Localizacao))
             .ToListAsync();
         return Ok(propriedades);
@@ -31,11 +36,15 @@ public class PropriedadesController : ControllerBase
     [Authorize]
     public async Task<ActionResult<PropriedadeDto>> CreatePropriedade(CreatePropriedadeDto dto)
     {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
         var propriedade = new Propriedade
         {
             Id = Guid.NewGuid(),
             Nome = dto.Nome,
-            Localizacao = dto.Localizacao
+            Localizacao = dto.Localizacao,
+            OwnerUserId = userId
         };
 
         _context.Propriedades.Add(propriedade);
@@ -46,9 +55,13 @@ public class PropriedadesController : ControllerBase
     }
 
     [HttpGet("{id}/talhoes")]
+    [Authorize]
     public async Task<ActionResult<IEnumerable<TalhaoDto>>> GetTalhoes(Guid id)
     {
-        var exists = await _context.Propriedades.AnyAsync(p => p.Id == id);
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+        var exists = await _context.Propriedades.AnyAsync(p => p.Id == id && p.OwnerUserId == userId);
         if (!exists) return NotFound("Propriedade não encontrada");
 
         var talhoes = await _context.Talhoes
@@ -63,8 +76,11 @@ public class PropriedadesController : ControllerBase
     [Authorize]
     public async Task<ActionResult<TalhaoDto>> CreateTalhao(Guid id, CreateTalhaoDto dto)
     {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
         var propriedade = await _context.Propriedades.FindAsync(id);
-        if (propriedade == null) return NotFound("Propriedade não encontrada");
+        if (propriedade == null || propriedade.OwnerUserId != userId) return NotFound("Propriedade não encontrada");
 
         var talhao = new Talhao
         {
