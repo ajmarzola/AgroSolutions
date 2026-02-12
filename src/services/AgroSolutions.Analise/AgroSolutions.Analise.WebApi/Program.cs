@@ -11,6 +11,7 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources; 
 using OpenTelemetry.Trace;
 using Serilog;
+using Serilog.Enrichers.Span;
 using Serilog.Formatting.Compact;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -95,8 +96,7 @@ if (builder.Configuration.GetValue("OpenTelemetry:Enabled", false))
             .AddAspNetCoreInstrumentation()
             .AddHttpClientInstrumentation()
             .AddSqlClientInstrumentation(options => { /* options.SetDbStatementForText = true; */ })
-           entication();
-app.UseAuth .AddOtlpExporter(opt =>
+            .AddOtlpExporter(opt =>
             {
                 opt.Endpoint = new Uri(builder.Configuration["OpenTelemetry:Endpoint"] ?? "http://localhost:4317");
             });

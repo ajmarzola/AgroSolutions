@@ -94,21 +94,24 @@ internal sealed record SimuladorOptions(
         if (talhoes.Count == 0) talhoes.Add(Guid.Parse("00000000-0000-0000-0000-000000000001"));
 
         return new SimuladorOptions(
-            baseUrl,
-            idPropriedade,
-            userEmail,
-            userPassword,
-            authBaseUrl,
-            talhoes,
-            intervalo,
-            total,
-            fonte,
-            idDispositivo,
-            token,
-            seed,
-            umidadeMin, umidadeMax,
-            tempMin, tempMax,
-            precMin, precMax
+            BaseUrl: baseUrl,
+            IdPropriedade: idPropriedade,
+            Talhoes: talhoes,
+            IntervaloSeconds: intervalo,
+            TotalPorTalhao: total,
+            Fonte: fonte,
+            IdDispositivo: idDispositivo,
+            BearerToken: token,
+            UserEmail: userEmail,
+            UserPassword: userPassword,
+            AuthBaseUrl: authBaseUrl,
+            Seed: seed,
+            UmidadeMin: umidadeMin,
+            UmidadeMax: umidadeMax,
+            TemperaturaMin: tempMin,
+            TemperaturaMax: tempMax,
+            PrecipitacaoMin: precMin,
+            PrecipitacaoMax: precMax
         );
     }
 

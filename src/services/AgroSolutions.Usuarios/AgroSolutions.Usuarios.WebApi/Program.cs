@@ -8,6 +8,7 @@ using OpenTelemetry.Resources;
 using OpenTelemetry.Trace; // Might be needed for WithTracing
 using System.Text;
 using Serilog;
+using Serilog.Enrichers.Span;
 using Serilog.Formatting.Compact;
 
 var builder = WebApplication.CreateBuilder(args);
