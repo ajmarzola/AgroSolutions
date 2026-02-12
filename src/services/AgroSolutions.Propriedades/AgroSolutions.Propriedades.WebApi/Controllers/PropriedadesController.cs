@@ -97,4 +97,27 @@ public class PropriedadesController : ControllerBase
         return CreatedAtAction(nameof(GetTalhoes), new { id = id },
             new TalhaoDto(talhao.Id, talhao.PropriedadeId, talhao.Nome, talhao.Cultura, talhao.Area));
     }
+
+    [HttpGet("talhoes/{id}")]
+    [Authorize]
+    public async Task<ActionResult<TalhaoDto>> GetTalhao(Guid id)
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+        var talhao = await _context.Talhoes
+            .Join(_context.Propriedades,
+                t => t.PropriedadeId,
+                p => p.Id,
+                (t, p) => new { Talhao = t, Propriedade = p })
+            .Where(x => x.Talhao.Id == id)
+            .FirstOrDefaultAsync();
+
+        if (talhao == null) return NotFound("Talhão não encontrado.");
+
+        if (talhao.Propriedade.OwnerUserId != userId)
+            return StatusCode(StatusCodes.Status403Forbidden, "Você não tem permissão para acessar este talhão.");
+
+        return Ok(new TalhaoDto(talhao.Talhao.Id, talhao.Talhao.PropriedadeId, talhao.Talhao.Nome, talhao.Talhao.Cultura, talhao.Talhao.Area));
+    }
 }

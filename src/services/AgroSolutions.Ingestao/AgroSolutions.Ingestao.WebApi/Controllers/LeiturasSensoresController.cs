@@ -4,6 +4,7 @@ using AgroSolutions.Ingestao.WebApi.Domain;
 using AgroSolutions.Ingestao.WebApi.Infrastructure.Mensageria;
 using AgroSolutions.Ingestao.WebApi.Infrastructure.Observability;
 using AgroSolutions.Ingestao.WebApi.Infrastructure.Repositorios;
+using AgroSolutions.Ingestao.WebApi.Infrastructure.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 
@@ -17,25 +18,43 @@ public sealed class LeiturasSensoresController : ControllerBase
     private readonly IEventoPublisher _publisher;
     private readonly ILogger<LeiturasSensoresController> _logger;
     private readonly IngestaoMetrics _metrics;
+    private readonly IPropriedadesService _propriedadesService;
 
     public LeiturasSensoresController(
         ILeituraSensorRepositorio repositorio,
         IEventoPublisher publisher,
         ILogger<LeiturasSensoresController> logger,
-        IngestaoMetrics metrics)
+        IngestaoMetrics metrics,
+        IPropriedadesService propriedadesService)
     {
         _repositorio = repositorio;
         _publisher = publisher;
         _logger = logger;
         _metrics = metrics;
+        _propriedadesService = propriedadesService;
     }
 
     [Authorize]
     [HttpPost]
     [ProducesResponseType(typeof(object), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> CriarAsync([FromBody] CriarLeituraSensorRequest request, CancellationToken ct)
     {
+        // Cross-Tenant Validation
+        var token = Request.Headers.Authorization.ToString();
+        if (string.IsNullOrEmpty(token)) return Unauthorized();
+
+        var isOwner = await _propriedadesService.ValidateTalhaoOwnershipAsync(request.IdTalhao, token);
+        if (!isOwner)
+        {
+            return Problem(
+                statusCode: StatusCodes.Status403Forbidden,
+                title: "Forbidden",
+                detail: "Você não tem permissão para enviar leituras para este talhão."
+            );
+        }
+
         // Validação extra: ao menos uma métrica preenchida
         if (request.Metricas.UmidadeSoloPercentual is null
             && request.Metricas.TemperaturaCelsius is null

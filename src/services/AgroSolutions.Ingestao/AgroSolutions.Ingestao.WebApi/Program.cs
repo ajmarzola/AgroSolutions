@@ -17,7 +17,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Serilog Configuration
 Log.Logger = new LoggerConfiguration()
     .Enrich.FromLogContext()
-    .Enrich.WithSpan()
+    //.Enrich.WithSpan()
     .WriteTo.Console(new RenderedCompactJsonFormatter())
     .CreateLogger();
 
@@ -29,6 +29,14 @@ builder.Services.AddSingleton<IngestaoMetrics>();
 
 // Controllers (mantém padrão mais amigável para o time)
 builder.Services.AddControllers();
+builder.Services.AddProblemDetails();
+
+// HTTP Clients
+builder.Services.AddHttpClient<AgroSolutions.Ingestao.WebApi.Infrastructure.Services.IPropriedadesService, AgroSolutions.Ingestao.WebApi.Infrastructure.Services.PropriedadesService>(client =>
+{
+    var url = builder.Configuration["Services:PropriedadesUrl"] ?? "http://propriedades.api"; // Default K8s service name guess
+    client.BaseAddress = new Uri(url);
+});
 
 // Swagger/OpenAPI
 builder.Services.AddEndpointsApiExplorer();
