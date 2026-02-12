@@ -1,173 +1,187 @@
-# Guia de Execução Local – AgroSolutions 🚜
+# 🚜 Guia de Infraestrutura & Execução – AgroSolutions
 
-Este guia detalha como executar a plataforma AgroSolutions localmente utilizando **Docker Desktop (Windows)** com Kubernetes ativado.
+Este guia centraliza todas as instruções para executar a plataforma AgroSolutions, desde o ambiente local até ambientes remotos (Dev/Prod).
 
 ---
 
-## ⚙️ Pré-requisitos
+## ⚙️ Pré-requisitos (Local)
 
-1. **Docker Desktop para Windows** instalado.
-2. **Kubernetes** habilitado nas configurações do Docker Desktop (`Settings > Kubernetes > Enable Kubernetes`).
-3. **WSL 2** configurado (recomendado) ou Terminal com suporte a Bash (Git Bash).
-4. **Git** instalado.
-5. **Helm** instalado (somente se for usar o stack de monitoramento).
+1. **Docker Desktop para Windows** (ou Linux/Mac) instalado.
+2. **Kubernetes** habilitado (`Settings > Kubernetes > Enable Kubernetes`).
+3. **WSL 2** (Windows) ou terminal Bash recomendado.
+4. **Git** e **Helm** instalados (Helm opcional se não usar monitoramento avançado).
 
 > **⚠️ Importante**: Execute os comandos a partir da **raiz do repositório**.
-> No Windows (PowerShell), prefixe scripts `.sh` com `bash` se necessário, ou use o WSL.
 
 ---
 
-## ✅ Serviços contemplados
+## 🚀 Execução em Ambiente Local
 
-- AgroSolutions.Analise.WebApi
-- AgroSolutions.Ingestao.WebApi
-- AgroSolutions.Propriedades.WebApi
-- AgroSolutions.Usuarios.WebApi
-- AgroSolutions.Ingestao.Simulador (CronJob)
+Utilizamos o Kustomize com overlay `local` para subir a stack completa no seu Docker Desktop.
 
----
+### 1. Build das Imagens
 
-## 🚀 Cenário A — Ambiente Novo (Instalação do zero)
+Antes de subir o cluster, construa as imagens locais para garantir que estão atualizadas.
 
-1) **(Opcional) Instalar stack de monitoramento**:
-
-```bash
-helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-helm repo update
-helm install kps prometheus-community/kube-prometheus-stack --namespace agrosolutions-observability --create-namespace
-```
-
-2) **Build das imagens (inclui Simulador)**:
-
-**Bash/WSL**
+**Bash/WSL:**
 ```bash
 bash ./build/scripts/docker-build.sh local
 ```
 
-**PowerShell**
+**PowerShell:**
 ```powershell
 ./build/scripts/docker-build.ps1 -Environment local
 ```
 
-3) **Aplicar o K8s local**:
+### 2. Aplicar Manifestos
 
+Suba a infraestrutura completa (RabbitMQ, SQL Server, APIs, Workers e Simulador):
+
+**Bash/WSL:**
 ```bash
 bash ./build/scripts/k8s-apply.sh local
 ```
 
-4) **Configurar credenciais (Secret) para o Simulador**:
-> ⚠️ **Necessário para Autenticação JWT**: O Simulador, rodando via CronJob, precisa de credenciais válidas para se autenticar na API de Usuários.
+**Alternativa Manual (funciona em qualquer shell com kubectl):**
+```bash
+kubectl apply -k infra/k8s/overlays/local
+```
+
+### 3. Configurar Credenciais do Simulador
+
+O Simulador roda como um CronJob e precisa se autenticar para enviar dados. Crie ou atualize o segredo com credenciais válidas de um usuário administrador:
 
 ```bash
-# Exemplo com credenciais padrão (ajuste conforme seu banco de dados de usuários)
 kubectl create secret generic simulador-auth-secret \
   --from-literal=email='admin@agrosolutions.com' \
   --from-literal=password='admin123' \
-  --namespace agrosolutions-local
+  --namespace agrosolutions-local \
+  --dry-run=client -o yaml | kubectl apply -f -
 ```
 
-5) **Verificar recursos**:
+### 4. Verificar Inicialização
+
+Aguarde até que todos os pods estejam com status `Running`. O SQL Server pode levar alguns segundos para inicializar.
 
 ```bash
-kubectl get pods -n agrosolutions-local
-kubectl get deployments -n agrosolutions-local
-kubectl get cronjobs -n agrosolutions-local
+kubectl get pods -n agrosolutions-local -w
 ```
+> **Nota:** É crucial que o `db-init-job` esteja com status `Completed`. Veja a seção de Troubleshooting se ele falhar.
 
-> Aguarde todos os pods ficarem `Running`. O simulador roda via CronJob a cada 5 minutos.
+### 5. Validar Execução e Primeiro Alerta
 
-> **Observação (local):** no overlay local, o serviço de Ingestão usa repositório em memória e RabbitMQ desabilitado para facilitar o bootstrap. Por isso o deployment de Ingestão roda com 1 réplica.
+Para confirmar que o fluxo completo (Simulador -> Ingestão -> RabbitMQ -> Análise) está funcionando:
+
+1. **Verificar envio**:
+   ```bash
+   # Encontre o pod do job mais recente
+   kubectl get pods -n agrosolutions-local -l app=ingestao-simulador
+   # Veja os logs
+   kubectl logs -n agrosolutions-local job/<nome-do-job> --tail=20
+   ```
+   *Logs esperados: "Login realizado com sucesso", "Leitura enviada".*
+
+2. **Verificar processamento**:
+   ```bash
+   kubectl logs -n agrosolutions-local -l app=analise -f
+   ```
+   *Logs esperados: "Regra avaliada", "Alerta gerado".*
 
 ---
 
-## 🚀 Cenário B — Ambiente Existente (dia a dia)
+## 🌐 Acesso aos Serviços (Local)
 
-1) **Checar status**:
-```bash
-kubectl get pods -n agrosolutions-local
-```
+No ambiente local, os serviços são expostos via **NodePort** (acessíveis via `localhost`).
 
-2) **Reaplicar manifests (se necessário)**:
-```bash
-kubectl apply -k infra/k8s/overlays/local
-```
-
-3) **Reiniciar deployments (quando precisa refletir mudanças de imagem)**:
-```bash
-kubectl rollout restart deployment -n agrosolutions-local
-```
-
----
-
-## 🚀 Cenário C — Reset de Ambiente (sem apagar volumes persistentes)
-
-1) **Remover recursos da stack**:
-```bash
-kubectl delete -k infra/k8s/overlays/local
-```
-
-2) **Aplicar novamente**:
-```bash
-kubectl apply -k infra/k8s/overlays/local
-```
-
-> Esse reset não remove volumes persistentes (caso existam). Ele apenas recria workloads e services.
-
----
-
-## 🚀 Cenário D — Hard Reset (apagar containers, imagens e volumes)
-
-1) **Remover recursos do cluster**:
-```bash
-kubectl delete -k infra/k8s/overlays/local
-kubectl delete namespace agrosolutions-local --ignore-not-found
-```
-
-2) **Limpar Docker Desktop** (cuidado: remove imagens/volumes locais):
-
-```bash
-docker system prune -a --volumes
-```
-
-3) **Recriar tudo**: volte ao **Cenário A**.
-
----
-
-## 🌐 Acesso aos serviços (NodePort)
-
-No ambiente local, os serviços são expostos via **NodePort**.
-
-| Serviço | Porta | URL |
-|---------|---------------|-----|
+| Serviço | Porta | URL Swagger / Interface |
+|---------|-------|-------------------------|
 | **Usuários** | 30001 | [http://localhost:30001/swagger](http://localhost:30001/swagger) |
 | **Propriedades** | 30002 | [http://localhost:30002/swagger](http://localhost:30002/swagger) |
 | **Ingestão** | 30003 | [http://localhost:30003/swagger](http://localhost:30003/swagger) |
 | **Análise** | 30004 | [http://localhost:30004/swagger](http://localhost:30004/swagger) |
-| **RabbitMQ** | 30006 | [http://localhost:30006](http://localhost:30006) (Login: user / Senha: password) |
-| **Grafana** | - | [Ver Docs Grafana](../observability/grafana/README.md) |
+| **RabbitMQ** | 30006 | [http://localhost:30006](http://localhost:30006) (user / password) |
+| **Grafana** | 32000 | [http://localhost:32000](http://localhost:32000) (admin / admin) |
 
 ---
 
-## 🤖 Simulador (execução manual)
+## 🌐 Ambientes Dev/Prod
 
-Para forçar uma execução fora do agendamento:
+Em ambientes remotos, a infraestrutura segue práticas de **GitOps** para garantir consistência e rastreabilidade.
 
-```bash
-kubectl create job --from=cronjob/ingestao-simulador simulador-manual -n agrosolutions-local
-```
+### Atualização via GitOps
+As atualizações de versão de imagem não são feitas manualmente (`kubectl set image`).
+1. O cluster possui um agente (ex: ArgoCD ou Flux) monitorando este repositório.
+2. Para atualizar, altere a tag da imagem no arquivo `kustomization.yaml` do ambiente desejado (`infra/k8s/overlays/prod` ou `dev`).
+3. Commit e Push da alteração.
+4. O GitOps detecta a mudança e sincroniza o cluster automaticamente.
 
-Ver logs do job:
+### Gerenciamento de Segredos
+Segredos (connection strings, chaves de API) **nunca** devem ser commitados no repositório.
+- **Configuração**: Eles devem ser injetados via `secretGenerator` em cada overlay localmente (não versionado) ou através de soluções de cofre digital (Vault/SealedSecrets) no cluster.
+- **Padrão**: O `kustomization.yaml` deve referenciar segredos que o ambiente espera que já existam os valores.
 
-```bash
-kubectl logs job/simulador-manual -n agrosolutions-local
-```
+### URLs Esperadas
+As rotas em Dev/Prod dependem da configuração de Ingress e DNS. Abaixo, o padrão esperado:
 
-> O simulador aceita `TALHOES` como GUIDs ou números. Números são convertidos para GUIDs determinísticos.
-> Para customizar o ID da propriedade, ajuste `ID_PROPRIEDADE` no ConfigMap.
+| Serviço | Dev (exemplo) | Prod (exemplo) |
+|---------|---------------|----------------|
+| **Swagger/API** | `https://api.dev.agrosolutions.internal/[servico]/swagger` | `https://api.agrosolutions.com/[servico]` |
+| **Grafana** | `https://grafana.dev.agrosolutions.internal` | `https://monitor.agrosolutions.com` |
+| **Jaeger** | `https://jaeger.dev.agrosolutions.internal` | *(Geralmente restrito a VPN)* |
 
 ---
 
-## ℹ️ Troubleshooting comum
+## 🛠 Troubleshooting
 
-- **Erro `CreateContainerConfigError`**: o K8s não encontrou a imagem. Refaça o build das imagens.
-- **Scripts `.sh` falhando no Windows**: use `bash` ou WSL. Verifique se os arquivos estão com LF.
+### Verificar se o `db-init-job` rodou com sucesso
+
+O `db-init-job` é responsável por rodar as migrations e popular o banco de dados inicialmente. Se ele falhar, as APIs retornarão erro de conexão com banco.
+
+**Passo a passo:**
+
+1. **Checar status do Job:**
+   ```bash
+   kubectl get jobs -n agrosolutions-local
+   ```
+   *A coluna `COMPLETIONS` deve estar `1/1`.*
+
+2. **Verificar Logs do Pod do Job:**
+   Se estiver `0/1`, descubra o motivo:
+   ```bash
+   kubectl logs -l job-name=db-init-job -n agrosolutions-local
+   ```
+   - **Erro "Login failed for user"**: Verifique se a senha na secret `db-secret` bate com a configurada no `sqlserver-deployment`.
+   - **Erro "Connection Timeout/Refused"**: O SQL Server ainda não estava pronto quando o job rodou.
+     - **Solução**: Delete o job falhado para que o Kubernetes (ou Kustomize) o recrie:
+       ```bash
+       kubectl delete job db-init-job -n agrosolutions-local
+       # Em seguida, reaplique o overlay local
+       kubectl apply -k infra/k8s/overlays/local
+       ```
+
+### Outros Problemas Comuns
+
+- **Erro `ImagePullBackOff` ou `ErrImagePull`**:
+  O Kubernetes não encontrou a imagem localmente. Execute o passo de **Build das Imagens** novamente e certifique-se de que o Docker Desktop está usando o contexto correto.
+
+- **RabbitMQ inacessível**:
+  Verifique se o pod do RabbitMQ está `Running` e se a porta 30006 (Management) ou 5672 (AMQP) não estão bloqueadas por firewall ou ocupadas no host.
+
+---
+
+## 🧹 Operações de Limpeza
+
+Se precisar resetar o ambiente:
+
+1. **Hard Reset** (Remove tudo, incluindo volumes/dados):
+   ```bash
+   kubectl delete -k infra/k8s/overlays/local
+   kubectl delete namespace agrosolutions-local
+   docker system prune -a --volumes # Cuidado, limpa todo o Docker
+   ```
+
+2. **Soft Reset** (Recria pods, mantendo dados):
+   ```bash
+   kubectl delete -k infra/k8s/overlays/local
+   kubectl apply -k infra/k8s/overlays/local
+   ```
