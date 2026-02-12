@@ -11,7 +11,7 @@ datasources:
   url: sql-service
   user: sa
   secureJsonData:
-    password: ${SQL_PASSWORD}
+    password: ${MSSQL_SA_PASSWORD}
   jsonData:
     database: AgroSolutionsAnalise
     encrypt: disable
