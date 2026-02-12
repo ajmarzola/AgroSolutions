@@ -19,6 +19,25 @@ Este guia centraliza todas as instruções para executar a plataforma AgroSoluti
 
 Utilizamos o Kustomize com overlay `local` para subir a stack completa no seu Docker Desktop.
 
+### ⚠️ PASSO OBRIGATÓRIO: CONFIGURAÇÃO DE SEGREDOS
+
+Antes de aplicar os manifestos, você **DEVE** configurar as variáveis de ambiente sensíveis.
+
+1.  Navegue até a pasta do overlay desejado (ex: `infra/k8s/overlays/local`).
+2.  Copie o arquivo `.env.example` para `.env` (ou crie um novo).
+    ```bash
+    cp infra/k8s/overlays/local/.env.example infra/k8s/overlays/local/.env
+    ```
+3.  Preencha o arquivo `.env` com seus valores.
+
+#### Checklist de Chaves
+| Chave | Descrição | Exemplo Seguro (Dev) |
+|-------|-----------|----------------------|
+| `Jwt__Key` | Chave para assinatura de tokens JWT (min 32 chars) | `super_secret_key_at_least_32_chars_long_12345` |
+| `MSSQL_SA_PASSWORD` | Senha de admin do SQL Server | `Password123!` (Exige: maiúscula, minúscula, número, especial) |
+| `RABBITMQ_DEFAULT_USER` | Usuário padrão RabbitMQ | `user` |
+| `RABBITMQ_DEFAULT_PASS` | Senha padrão RabbitMQ | `password` |
+
 ### 1. Build das Imagens
 
 Antes de subir o cluster, construa as imagens locais para garantir que estão atualizadas.
@@ -101,6 +120,45 @@ No ambiente local, os serviços são expostos via **NodePort** (acessíveis via 
 | **Análise** | 30004 | [http://localhost:30004/swagger](http://localhost:30004/swagger) |
 | **RabbitMQ** | 30006 | [http://localhost:30006](http://localhost:30006) (user / password) |
 | **Grafana** | 32000 | [http://localhost:32000](http://localhost:32000) (admin / admin) |
+
+---
+
+## ✅ Smoke Test (Teste de Sanidade)
+
+### Como Validar o MVP
+Siga este roteiro para garantir que todos os componentes estão integrados:
+
+1.  **Login**:
+    *   Acesse o Swagger do serviço de **Usuários** ([http://localhost:30001/swagger](http://localhost:30001/swagger)).
+    *   Use o endpoint `/api/usuarios` (POST) para criar um usuário (ou use admin se existir).
+    *   Faça login (`/api/auth/login`) e copie o `access_token` da resposta.
+
+2.  **Criar Propriedade**:
+    *   Acesse o Swagger de **Propriedades** ([http://localhost:30002/swagger](http://localhost:30002/swagger)).
+    *   Clique em **Authorize** e cole o token `Bearer <token>`.
+    *   Crie uma propriedade via `POST /api/propriedades`. Copie o ID da propriedade criada.
+
+3.  **Iniciar Simulador**:
+    *   Se o cronjob ainda não rodou, dispare um job manual para teste imediato:
+    ```bash
+    kubectl create job --from=cronjob/ingestao-simulador manual-test-job -n agrosolutions-local
+    ```
+
+4.  **Checar Logs no Loki (Opcional) ou via Kubectl**:
+    *   Verifique se a Ingestão recebeu os dados:
+    ```bash
+    kubectl logs -l app=ingestao-worker -n agrosolutions-local --tail=50
+    ```
+    *   Verifique se a Análise processou:
+    ```bash
+    kubectl logs -l app=analise -n agrosolutions-local --tail=50
+    ```
+    *   *Logs esperados: "Mensagem recebida", "Regra processada", "Alerta gerado".*
+
+5.  **Ver Alerta no Grafana**:
+    *   Acesse o Grafana em [http://localhost:32000](http://localhost:32000) (admin / admin).
+    *   Navegue até **Dashboards** -> **AgroSolutions Alerts**.
+    *   Verifique os gráficos de temperatura/umidade e a tabela de alertas recentes.
 
 ---
 

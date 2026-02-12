@@ -66,6 +66,8 @@ Cada serviço é independente, containerizado e orquestrado via Kubernetes.
 Para rodar o projeto localmente e validar o fluxo completo:
 
 ### 1. Subir Infraestrutura
+> **Nota**: Antes de executar, configure os segredos conforme instruído no [Guia de Infraestrutura](infra/k8s/README.md#⚠-passo-obrigatório-configuração-de-segredos).
+
 ```bash
 kubectl apply -k infra/k8s/overlays/local
 ```
