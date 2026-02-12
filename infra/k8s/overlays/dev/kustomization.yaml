@@ -5,30 +5,39 @@ resources:
 - namespace.yaml
 - monitoring/servicemonitors.yaml
 - ../../base/analise
-- ../../base/propriedades
 - ../../base/ingestao
+- ../../base/propriedades
 - ../../base/usuarios
+- ../../base/observability
+- ../../base/sqlserver-deployment.yaml
+- ../../base/db-init-job.yaml
+- ../../rabbitmq
+
 images:
 - name: analise
-  newName: ghcr.io/agrosolutions/analise
+  newName: ajmarzola/agrosolutions-analise
   newTag: dev
 - name: ingestao
-  newName: ghcr.io/agrosolutions/ingestao
+  newName: ajmarzola/agrosolutions-ingestao
   newTag: dev
 - name: ingestao-simulador
-  newName: ghcr.io/agrosolutions/ingestao-simulador
+  newName: ajmarzola/agrosolutions-ingestao-simulador
   newTag: dev
 - name: propriedades
-  newName: ghcr.io/agrosolutions/propriedades
+  newName: ajmarzola/agrosolutions-propriedades
   newTag: dev
 - name: usuarios
-  newName: ghcr.io/agrosolutions/usuarios
+  newName: ajmarzola/agrosolutions-usuarios
   newTag: dev
+
 labels:
 - pairs:
     app.kubernetes.io/part-of: agrosolutions-platform
     app.kubernetes.io/managed-by: kustomize
     env: dev
+
 patchesStrategicMerge:
 - configmap-env-patch.yaml
 - monitoring/service-labels.patch.yaml
+- db-resources.patch.yaml
+- rabbitmq-resources.patch.yaml
