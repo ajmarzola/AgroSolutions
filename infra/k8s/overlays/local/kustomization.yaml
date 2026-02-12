@@ -48,6 +48,9 @@ secretGenerator:
   - name: sql-server-secret
     envs:
     - .env
+  - name: rabbitmq-secret
+    envs:
+    - .env
   - name: grafana-env-secret
     envs:
     - .env

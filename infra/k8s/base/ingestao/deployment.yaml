@@ -36,6 +36,17 @@ spec:
                 name: rabbitmq-config
             - secretRef:
                 name: rabbitmq-secret
+          env:
+            - name: RabbitMq__UserName
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-secret
+                  key: RABBITMQ_DEFAULT_USER
+            - name: RabbitMq__Password
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-secret
+                  key: RABBITMQ_DEFAULT_PASS
           # Se tiver segredos (JWT keys, connection strings), use Secret (não ConfigMap)
           # envFrom:
           #   - secretRef:
