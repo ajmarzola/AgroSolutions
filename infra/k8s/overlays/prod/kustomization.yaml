@@ -36,6 +36,18 @@ labels:
     app.kubernetes.io/managed-by: kustomize
     env: prod
 
+secretGenerator:
+- name: sql-server-secret
+  envs:
+  - .env
+- name: agrosolutions-auth-secrets
+  envs:
+  - .env
+- name: rabbitmq-secret
+  envs:
+  - .env
+
+
 patchesStrategicMerge:
 - configmap-env-patch.yaml
 - monitoring/service-labels.patch.yaml
