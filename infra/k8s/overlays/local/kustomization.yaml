@@ -11,6 +11,8 @@ resources:
 - ../../base/sqlserver-deployment.yaml
 - ../../base/db-init-job.yaml
 - ../../rabbitmq
+- logging/loki.yaml
+- logging/promtail.yaml
 - monitoring/servicemonitors.yaml
 images:
 - name: analise
