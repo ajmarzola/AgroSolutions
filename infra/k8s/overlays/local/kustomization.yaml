@@ -43,8 +43,10 @@ secretGenerator:
   - name: agrosolutions-auth-secrets
     envs:
     - .env
-  - name: sql-secret
-    behavior: replace
+  - name: sql-server-secret
+    envs:
+    - .env
+  - name: grafana-env-secret
     envs:
     - .env
 

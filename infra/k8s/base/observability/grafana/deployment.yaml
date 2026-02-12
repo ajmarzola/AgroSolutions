@@ -35,6 +35,11 @@ spec:
               name: grafana-admin-credentials
               key: admin-password
               optional: true
+        - name: SQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: grafana-env-secret
+              key: SQL_PASSWORD
         volumeMounts:
         - name: grafana-datasources
           mountPath: /etc/grafana/provisioning/datasources

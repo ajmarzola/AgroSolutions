@@ -48,8 +48,8 @@ spec:
         - name: MSSQL_SA_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: sql-secret
-              key: password
+              name: sql-server-secret
+              key: MSSQL_SA_PASSWORD
         volumeMounts:
         - name: mssql-data
           mountPath: /var/opt/mssql/data
@@ -57,11 +57,3 @@ spec:
       - name: mssql-data
         persistentVolumeClaim:
           claimName: sql-data-claim
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: sql-secret
-type: Opaque
-stringData:
-  password: "Password123!"
