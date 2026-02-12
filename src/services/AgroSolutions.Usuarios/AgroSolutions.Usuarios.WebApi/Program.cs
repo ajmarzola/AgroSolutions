@@ -141,4 +141,7 @@ app.UseOpenTelemetryPrometheusScrapingEndpoint();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+
+Log.Information("{@StartupInfo}", new { Message = "Startup Completed", Service = "AgroSolutions.Usuarios.WebApi", OpenTelemetry = true, Serilog = true });
+
 app.Run();

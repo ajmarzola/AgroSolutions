@@ -120,4 +120,6 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+Log.Information("{@StartupInfo}", new { Message = "Startup Completed", Service = "AgroSolutions.Analise.WebApi", OpenTelemetry = true, Serilog = true });
+
 app.Run();

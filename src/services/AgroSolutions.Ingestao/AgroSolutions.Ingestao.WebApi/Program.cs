@@ -17,7 +17,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Serilog Configuration
 Log.Logger = new LoggerConfiguration()
     .Enrich.FromLogContext()
-    //.Enrich.WithSpan()
+    .Enrich.WithSpan()
     .WriteTo.Console(new RenderedCompactJsonFormatter())
     .CreateLogger();
 
@@ -173,5 +173,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+Log.Information("{@StartupInfo}", new { Message = "Startup Completed", Service = "AgroSolutions.Ingestao.WebApi", OpenTelemetry = true, Serilog = true });
 
 await app.RunAsync();

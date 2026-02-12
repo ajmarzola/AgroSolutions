@@ -15,7 +15,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Serilog Configuration
 Log.Logger = new LoggerConfiguration()
     .Enrich.FromLogContext()
-    //.Enrich.WithSpan()
+    .Enrich.WithSpan()
     .WriteTo.Console(new RenderedCompactJsonFormatter())
     .CreateLogger();
 
@@ -125,5 +125,6 @@ if (app.Configuration.GetValue<bool>("Db:AutoMigrate"))
     }
 }
 
+Log.Information("{@StartupInfo}", new { Message = "Startup Completed", Service = "AgroSolutions.Propriedades.WebApi", OpenTelemetry = true, Serilog = true });
 
 app.Run();
