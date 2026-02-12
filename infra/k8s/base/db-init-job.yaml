@@ -32,6 +32,6 @@ spec:
         - name: MSSQL_SA_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: sql-secret
-              key: password
+              name: sql-server-secret
+              key: MSSQL_SA_PASSWORD
       restartPolicy: OnFailure
