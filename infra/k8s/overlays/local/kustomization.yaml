@@ -39,6 +39,7 @@ patches:
 - path: ingestao-replicas.patch.yaml
 - path: monitoring/service-labels.patch.yaml
 - path: service-nodeport.patch.yaml
+- path: grafana-patch.yaml
 
 secretGenerator:
   - name: agrosolutions-auth-secrets

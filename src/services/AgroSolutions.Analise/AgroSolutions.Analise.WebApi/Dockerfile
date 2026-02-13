@@ -42,6 +42,11 @@ WORKDIR /app
 
 # Cria usuário/grupo não-root
 RUN addgroup -S appgrp && adduser -S -u 1000 appusr -G appgrp
+
+# Instalar libs de globalização para o SqlClient funcionar no Alpine
+RUN apk add --no-cache icu-libs
+ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
+
 USER 1000
 
 # Porta padrão (ajuste se necessário)

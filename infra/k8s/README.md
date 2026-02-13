@@ -119,7 +119,7 @@ No ambiente local, os serviços são expostos via **NodePort** (acessíveis via 
 | **Ingestão** | 30003 | [http://localhost:30003/swagger](http://localhost:30003/swagger) |
 | **Análise** | 30004 | [http://localhost:30004/swagger](http://localhost:30004/swagger) |
 | **RabbitMQ** | 30006 | [http://localhost:30006](http://localhost:30006) (user / password) |
-| **Grafana** | 32000 | [http://localhost:32000](http://localhost:32000) (admin / admin) |
+| **Grafana** | 30000 | [http://localhost:30000](http://localhost:30000) (admin / admin) |
 
 ---
 
