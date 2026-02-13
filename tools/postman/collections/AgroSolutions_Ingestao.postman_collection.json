@@ -1,0 +1,194 @@
+{
+  "info": {
+    "_postman_id": "35f22459-2c0c-4044-be12-1fcced80058d",
+    "name": "AgroSolutions - Ingestao API (Local)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Auth helper: if {{jwt}} is set, apply Bearer token.",
+          "const t = pm.environment.get('jwt') || pm.collectionVariables.get('jwt');",
+          "if (t) { pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + t }); }"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:30003"
+    },
+    {
+      "key": "jwt",
+      "value": ""
+    },
+    {
+      "key": "email",
+      "value": "anderson@example.com"
+    },
+    {
+      "key": "password",
+      "value": "Senha@12345"
+    },
+    {
+      "key": "tipoId",
+      "value": "1"
+    },
+    {
+      "key": "propriedadeId",
+      "value": ""
+    },
+    {
+      "key": "talhaoId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Criar Leitura (POST /api/v1/leituras-sensores) [AUTH] - requer {{propriedadeId}} e {{talhaoId}}",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/leituras-sensores",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "leituras-sensores"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"idPropriedade\": \"{{propriedadeId}}\",\n  \"idTalhao\": \"{{talhaoId}}\",\n  \"origem\": \"postman\",\n  \"dataHoraCapturaUtc\": \"{{$isoTimestamp}}\",\n  \"metricas\": {\n    \"umidadeSoloPercentual\": 25.0,\n    \"temperaturaCelsius\": 28.2,\n    \"precipitacaoMilimetros\": 0.0\n  },\n  \"meta\": {\n    \"idDispositivo\": \"postman-device-01\",\n    \"correlationId\": \"{{$guid}}\"\n  }\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 201/200', function(){ pm.expect(pm.response.code).to.be.oneOf([201,200]); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Consultar Leituras (GET /api/v1/leituras-sensores) [PÚBLICO]",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/leituras-sensores?idTalhao={{talhaoId}}&deUtc={{$isoTimestamp}}&ateUtc={{$isoTimestamp}}&agruparMinutos=",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "leituras-sensores"
+          ],
+          "query": [
+            {
+              "key": "idTalhao",
+              "value": "{{talhaoId}}"
+            },
+            {
+              "key": "deUtc",
+              "value": "{{$isoTimestamp}}"
+            },
+            {
+              "key": "ateUtc",
+              "value": "{{$isoTimestamp}}"
+            },
+            {
+              "key": "agruparMinutos",
+              "value": ""
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Public endpoint: remove Authorization header if present",
+              "pm.request.headers.remove('Authorization');"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Health (GET /health)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "health"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Public endpoint: remove Authorization header if present",
+              "pm.request.headers.remove('Authorization');"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Metrics (GET /metrics)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/metrics",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "metrics"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Public endpoint: remove Authorization header if present",
+              "pm.request.headers.remove('Authorization');"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

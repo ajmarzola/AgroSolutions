@@ -1,0 +1,246 @@
+{
+  "info": {
+    "_postman_id": "a4098ef7-c9b4-4fb7-85f5-51780ac9c0fa",
+    "name": "AgroSolutions - Propriedades API (Local)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Auth helper: if {{jwt}} is set, apply Bearer token.",
+          "const t = pm.environment.get('jwt') || pm.collectionVariables.get('jwt');",
+          "if (t) { pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + t }); }"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:30002"
+    },
+    {
+      "key": "jwt",
+      "value": ""
+    },
+    {
+      "key": "email",
+      "value": "anderson@example.com"
+    },
+    {
+      "key": "password",
+      "value": "Senha@12345"
+    },
+    {
+      "key": "tipoId",
+      "value": "1"
+    },
+    {
+      "key": "propriedadeId",
+      "value": ""
+    },
+    {
+      "key": "talhaoId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Listar Propriedades (GET /api/v1/propriedades) [AUTH]",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/propriedades",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "propriedades"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Criar Propriedade (POST /api/v1/propriedades) [AUTH] - salva {{propriedadeId}}",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/propriedades",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "propriedades"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nome\": \"Fazenda Exemplo\",\n  \"localizacao\": \"Serra Negra - SP\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 201/200', function(){ pm.expect(pm.response.code).to.be.oneOf([201,200]); });",
+              "try { const j = pm.response.json(); const id = j.id || j.Id; if(id){ pm.environment.set('propriedadeId', id); pm.collectionVariables.set('propriedadeId', id);} } catch(e) {}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Listar Talhões (GET /api/v1/propriedades/{{propriedadeId}}/talhoes) [AUTH]",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/propriedades/{{propriedadeId}}/talhoes",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "propriedades",
+            "{{propriedadeId}}",
+            "talhoes"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Criar Talhão (POST /api/v1/propriedades/{{propriedadeId}}/talhoes) [AUTH] - salva {{talhaoId}}",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/propriedades/{{propriedadeId}}/talhoes",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "propriedades",
+            "{{propriedadeId}}",
+            "talhoes"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nome\": \"Talhão A\",\n  \"cultura\": \"Soja\",\n  \"area\": 12.5\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 201/200', function(){ pm.expect(pm.response.code).to.be.oneOf([201,200]); });",
+              "try { const j = pm.response.json(); const id = j.id || j.Id; if(id){ pm.environment.set('talhaoId', id); pm.collectionVariables.set('talhaoId', id);} } catch(e) {}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Consultar Talhão (GET /api/v1/propriedades/talhoes/{{talhaoId}}) [AUTH]",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/propriedades/talhoes/{{talhaoId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "propriedades",
+            "talhoes",
+            "{{talhaoId}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Health (GET /health)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "health"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Public endpoint: remove Authorization header if present",
+              "pm.request.headers.remove('Authorization');"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Metrics (GET /metrics)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/metrics",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "metrics"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Public endpoint: remove Authorization header if present",
+              "pm.request.headers.remove('Authorization');"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

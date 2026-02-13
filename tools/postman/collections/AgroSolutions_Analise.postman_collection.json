@@ -1,0 +1,190 @@
+{
+  "info": {
+    "_postman_id": "f7e46320-d3bf-422e-8402-baaa1feb2152",
+    "name": "AgroSolutions - Analise API (Local)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Auth helper: if {{jwt}} is set, apply Bearer token.",
+          "const t = pm.environment.get('jwt') || pm.collectionVariables.get('jwt');",
+          "if (t) { pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + t }); }"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:30004"
+    },
+    {
+      "key": "jwt",
+      "value": ""
+    },
+    {
+      "key": "email",
+      "value": "anderson@example.com"
+    },
+    {
+      "key": "password",
+      "value": "Senha@12345"
+    },
+    {
+      "key": "tipoId",
+      "value": "1"
+    },
+    {
+      "key": "propriedadeId",
+      "value": ""
+    },
+    {
+      "key": "talhaoId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Listar Leituras (GET /api/v1/analise/leituras) [PÚBLICO]",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/analise/leituras?idTalhao={{talhaoId}}&top=100",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "analise",
+            "leituras"
+          ],
+          "query": [
+            {
+              "key": "idTalhao",
+              "value": "{{talhaoId}}"
+            },
+            {
+              "key": "top",
+              "value": "100"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Public endpoint: remove Authorization header if present",
+              "pm.request.headers.remove('Authorization');"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Listar Alertas (GET /api/v1/analise/alertas) [PÚBLICO]",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/analise/alertas?idTalhao={{talhaoId}}&top=100",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "analise",
+            "alertas"
+          ],
+          "query": [
+            {
+              "key": "idTalhao",
+              "value": "{{talhaoId}}"
+            },
+            {
+              "key": "top",
+              "value": "100"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Public endpoint: remove Authorization header if present",
+              "pm.request.headers.remove('Authorization');"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Health (GET /health)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "health"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Public endpoint: remove Authorization header if present",
+              "pm.request.headers.remove('Authorization');"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Metrics (GET /metrics)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/metrics",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "metrics"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Public endpoint: remove Authorization header if present",
+              "pm.request.headers.remove('Authorization');"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

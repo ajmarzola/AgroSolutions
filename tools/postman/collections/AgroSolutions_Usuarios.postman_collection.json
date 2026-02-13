@@ -1,0 +1,235 @@
+{
+  "info": {
+    "_postman_id": "5a0193d7-5397-4318-b3be-5416bf341d93",
+    "name": "AgroSolutions - Usuarios API (Local)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Auth helper: if {{jwt}} is set, apply Bearer token.",
+          "const t = pm.environment.get('jwt') || pm.collectionVariables.get('jwt');",
+          "if (t) { pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + t }); }"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:30001"
+    },
+    {
+      "key": "jwt",
+      "value": ""
+    },
+    {
+      "key": "email",
+      "value": "anderson@example.com"
+    },
+    {
+      "key": "password",
+      "value": "Senha@12345"
+    },
+    {
+      "key": "tipoId",
+      "value": "1"
+    },
+    {
+      "key": "propriedadeId",
+      "value": ""
+    },
+    {
+      "key": "talhaoId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Registrar usuário (POST /api/usuarios/registrar)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/usuarios/registrar",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "usuarios",
+            "registrar"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{email}}\",\n  \"senha\": \"{{password}}\",\n  \"tipoId\": \"{{tipoId}}\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Public endpoint: remove Authorization header if present",
+              "pm.request.headers.remove('Authorization');"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Login (POST /api/usuarios/login) - salva token em {{jwt}}",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/usuarios/login",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "usuarios",
+            "login"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Public endpoint: remove Authorization header if present",
+              "pm.request.headers.remove('Authorization');"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function(){ pm.response.to.have.status(200); });",
+              "try {",
+              "  const j = pm.response.json();",
+              "  const token = j.Token || j.token || j.access_token;",
+              "  if (token) { pm.environment.set('jwt', token); pm.collectionVariables.set('jwt', token); }",
+              "} catch(e) {}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Listar usuários (GET /api/usuarios) [AUTH]",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/usuarios",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "usuarios"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Remover usuário (DELETE /api/usuarios/:id) [AUTH] (ajuste o :id)",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/usuarios/1",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "usuarios",
+            "1"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Health (GET /health)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "health"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Public endpoint: remove Authorization header if present",
+              "pm.request.headers.remove('Authorization');"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Metrics (GET /metrics)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/metrics",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "metrics"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Public endpoint: remove Authorization header if present",
+              "pm.request.headers.remove('Authorization');"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

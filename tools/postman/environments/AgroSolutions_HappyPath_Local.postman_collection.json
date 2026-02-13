@@ -1,0 +1,410 @@
+{
+  "info": {
+    "_postman_id": "26b4f8e1-2488-4eb0-be20-5e3d2d5add12",
+    "name": "AgroSolutions - Happy Path (Local) - Runner",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Execução fim-a-fim: Registrar/Login -> Criar Propriedade/Talhão -> Ingestão Leitura -> Consultas Análise.\n\nPré-requisitos:\n- APIs expostas via NodePort (30001..30004)\n- Ambiente Postman com email/password definidos.\n\nObservação:\n- Se o usuário já existir, o step de registrar pode retornar 409/400; o runner continua."
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global: apply Bearer token if jwt exists.",
+          "const t = pm.environment.get('jwt') || pm.collectionVariables.get('jwt');",
+          "if (t) pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + t });"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "usuariosBaseUrl",
+      "value": "http://localhost:30001"
+    },
+    {
+      "key": "propriedadesBaseUrl",
+      "value": "http://localhost:30002"
+    },
+    {
+      "key": "ingestaoBaseUrl",
+      "value": "http://localhost:30003"
+    },
+    {
+      "key": "analiseBaseUrl",
+      "value": "http://localhost:30004"
+    },
+    {
+      "key": "jwt",
+      "value": ""
+    },
+    {
+      "key": "email",
+      "value": "anderson@example.com"
+    },
+    {
+      "key": "password",
+      "value": "Senha@12345"
+    },
+    {
+      "key": "tipoId",
+      "value": "1"
+    },
+    {
+      "key": "propriedadeId",
+      "value": ""
+    },
+    {
+      "key": "talhaoId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "1) Usuários",
+      "item": [
+        {
+          "name": "1.1 Registrar (POST /api/usuarios/registrar)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Public endpoint: remove Authorization header if present",
+                  "pm.request.headers.remove('Authorization');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Accept: 200/201/400/409 (already exists / validation).",
+                  "pm.test('Registrar: status aceitável', function(){",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200,201,400,409]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{usuariosBaseUrl}}/api/usuarios/registrar",
+              "host": [
+                "{{usuariosBaseUrl}}"
+              ],
+              "path": [
+                "api",
+                "usuarios",
+                "registrar"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"senha\": \"{{password}}\",\n  \"tipoId\": \"{{tipoId}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "1.2 Login (POST /api/usuarios/login) -> salva {{jwt}}",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Public endpoint: remove Authorization header if present",
+                  "pm.request.headers.remove('Authorization');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Login: status 200', function(){ pm.response.to.have.status(200); });",
+                  "const j = pm.response.json();",
+                  "const token = j.Token || j.token || j.access_token;",
+                  "pm.test('Token presente', function(){ pm.expect(token).to.be.ok; });",
+                  "if (token) { pm.environment.set('jwt', token); pm.collectionVariables.set('jwt', token); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{usuariosBaseUrl}}/api/usuarios/login",
+              "host": [
+                "{{usuariosBaseUrl}}"
+              ],
+              "path": [
+                "api",
+                "usuarios",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2) Propriedades",
+      "item": [
+        {
+          "name": "2.1 Criar Propriedade (POST /api/v1/propriedades) -> salva {{propriedadeId}}",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Criar Propriedade: status 200/201', function(){ pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+                  "const j = pm.response.json();",
+                  "const id = j.id || j.Id;",
+                  "pm.test('PropriedadeId presente', function(){ pm.expect(id).to.be.ok; });",
+                  "if (id) { pm.environment.set('propriedadeId', id); pm.collectionVariables.set('propriedadeId', id); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{propriedadesBaseUrl}}/api/v1/propriedades",
+              "host": [
+                "{{propriedadesBaseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "propriedades"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Fazenda Runner\",\n  \"localizacao\": \"Serra Negra - SP\"\n}"
+            }
+          }
+        },
+        {
+          "name": "2.2 Criar Talhão (POST /api/v1/propriedades/{{propriedadeId}}/talhoes) -> salva {{talhaoId}}",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Criar Talhão: status 200/201', function(){ pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+                  "const j = pm.response.json();",
+                  "const id = j.id || j.Id;",
+                  "pm.test('TalhaoId presente', function(){ pm.expect(id).to.be.ok; });",
+                  "if (id) { pm.environment.set('talhaoId', id); pm.collectionVariables.set('talhaoId', id); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{propriedadesBaseUrl}}/api/v1/propriedades/{{propriedadeId}}/talhoes",
+              "host": [
+                "{{propriedadesBaseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "propriedades",
+                "{{propriedadeId}}",
+                "talhoes"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Talhão Runner\",\n  \"cultura\": \"Soja\",\n  \"area\": 12.5\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3) Ingestão",
+      "item": [
+        {
+          "name": "3.1 Criar Leitura (POST /api/v1/leituras-sensores)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Criar Leitura: status 200/201', function(){ pm.expect(pm.response.code).to.be.oneOf([200,201]); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{ingestaoBaseUrl}}/api/v1/leituras-sensores",
+              "host": [
+                "{{ingestaoBaseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "leituras-sensores"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idPropriedade\": \"{{propriedadeId}}\",\n  \"idTalhao\": \"{{talhaoId}}\",\n  \"origem\": \"postman-runner\",\n  \"dataHoraCapturaUtc\": \"{{$isoTimestamp}}\",\n  \"metricas\": {\n    \"umidadeSoloPercentual\": 25.0,\n    \"temperaturaCelsius\": 28.2,\n    \"precipitacaoMilimetros\": 0.0\n  },\n  \"meta\": {\n    \"idDispositivo\": \"postman-runner-01\",\n    \"correlationId\": \"{{$guid}}\"\n  }\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4) Análise (consulta)",
+      "item": [
+        {
+          "name": "4.1 Listar Leituras (GET /api/v1/analise/leituras)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Public endpoint in current design",
+                  "pm.request.headers.remove('Authorization');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function(){ pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{analiseBaseUrl}}/api/v1/analise/leituras?idTalhao={{talhaoId}}&top=100",
+              "host": [
+                "{{analiseBaseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "analise",
+                "leituras"
+              ],
+              "query": [
+                {
+                  "key": "idTalhao",
+                  "value": "{{talhaoId}}"
+                },
+                {
+                  "key": "top",
+                  "value": "100"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "4.2 Listar Alertas (GET /api/v1/analise/alertas)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Public endpoint in current design",
+                  "pm.request.headers.remove('Authorization');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function(){ pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{analiseBaseUrl}}/api/v1/analise/alertas?idTalhao={{talhaoId}}&top=100",
+              "host": [
+                "{{analiseBaseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "analise",
+                "alertas"
+              ],
+              "query": [
+                {
+                  "key": "idTalhao",
+                  "value": "{{talhaoId}}"
+                },
+                {
+                  "key": "top",
+                  "value": "100"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
