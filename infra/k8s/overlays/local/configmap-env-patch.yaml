@@ -4,9 +4,9 @@ metadata:
   name: analise-config
 data:
   ASPNETCORE_ENVIRONMENT: Development
-  SqlServer__ConnectionString: "Server=agrosolutions.database.windows.net;Database=Analise;User Id=usr_agro;Password=Fi@p2026;TrustServerCertificate=True;"
+  SqlServer__ConnectionString: "Server=sql-service;Database=AgroSolutionsAnalise;User Id=sa;Password=Password123!;TrustServerCertificate=True;"
   OpenTelemetry__Enabled: "true"
-  OpenTelemetry__Endpoint: "http://jaeger-collector:4317"
+  OpenTelemetry__Endpoint: "http://otel-collector:4317"
   Jwt__Key: "segredo_super_secreto_para_desenvolvimento_local"
   Jwt__Issuer: "AgroSolutions"
   Jwt__Audience: "AgroSolutions"
@@ -17,13 +17,14 @@ metadata:
   name: ingestao-config
 data:
   ASPNETCORE_ENVIRONMENT: Development
-  SqlServer__UseInMemory: "true"
+  SqlServer__ConnectionString: "Server=sql-service;Database=AgroSolutionsIngestao;User Id=sa;Password=Password123!;TrustServerCertificate=True;"
+  SqlServer__UseInMemory: "false"
   RabbitMq__Enabled: "true"
   OpenTelemetry__Enabled: "true"
-  OpenTelemetry__Endpoint: "http://jaeger-collector:4317"
+  OpenTelemetry__Endpoint: "http://otel-collector:4317"
   # Para o Simulador (que l variveis tambm)
   OpenTelemetry_Enabled: "true"
-  OpenTelemetry_Endpoint: "http://jaeger-collector:4317"
+  OpenTelemetry_Endpoint: "http://otel-collector:4317"
   Jwt__Key: "segredo_super_secreto_para_desenvolvimento_local"
   Jwt__Issuer: "AgroSolutions"
   Jwt__Audience: "AgroSolutions"
@@ -34,9 +35,9 @@ metadata:
   name: propriedades-config
 data:
   ASPNETCORE_ENVIRONMENT: Development
-  ConnectionStrings__DefaultConnection: "Server=agrosolutions.database.windows.net;Database=Propriedades;User Id=usr_agro;Password=Fi@p2026;TrustServerCertificate=True;"
+  ConnectionStrings__DefaultConnection: "Server=sql-service;Database=AgroSolutionsPropriedades;User Id=sa;Password=Password123!;TrustServerCertificate=True;"
   OpenTelemetry__Enabled: "true"
-  OpenTelemetry__Endpoint: "http://jaeger-collector:4317"
+  OpenTelemetry__Endpoint: "http://otel-collector:4317"
   Jwt__Key: "segredo_super_secreto_para_desenvolvimento_local"
   Jwt__Issuer: "AgroSolutions"
   Jwt__Audience: "AgroSolutions"
@@ -47,10 +48,11 @@ metadata:
   name: usuarios-config
 data:
   ASPNETCORE_ENVIRONMENT: Development
+  ConnectionStrings__DefaultConnection: "Server=sql-service;Database=AgroSolutionsUsuarios;User Id=sa;Password=Password123!;TrustServerCertificate=True;"
+  SqlServer__UseInMemory: "false"
   OpenTelemetry__Enabled: "true"
-  OpenTelemetry__Endpoint: "http://jaeger-collector:4317"
+  OpenTelemetry__Endpoint: "http://otel-collector:4317"
   Jwt__Key: "segredo_super_secreto_para_desenvolvimento_local"
   Jwt__Issuer: "AgroSolutions"
   Jwt__Audience: "AgroSolutions"
-  SqlServer__UseInMemory: "true"
 

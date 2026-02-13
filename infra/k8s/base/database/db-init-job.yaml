@@ -28,7 +28,7 @@ spec:
             sleep 5
           done
           echo "SQL Server is up - executing initialization script"
-          $SQLCMD -S sql-service -U sa -P "$MSSQL_SA_PASSWORD" -Q "IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = 'AgroSolutionsAnalise') CREATE DATABASE AgroSolutionsAnalise; IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = 'AgroSolutionsPropriedades') CREATE DATABASE AgroSolutionsPropriedades;" -C
+          $SQLCMD -S sql-service -U sa -P "$MSSQL_SA_PASSWORD" -Q "IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = 'AgroSolutionsAnalise') CREATE DATABASE AgroSolutionsAnalise; IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = 'AgroSolutionsPropriedades') CREATE DATABASE AgroSolutionsPropriedades; IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = 'AgroSolutionsUsuarios') CREATE DATABASE AgroSolutionsUsuarios; IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = 'AgroSolutionsIngestao') CREATE DATABASE AgroSolutionsIngestao;" -C
         env:
         - name: MSSQL_SA_PASSWORD
           valueFrom:

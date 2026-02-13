@@ -1,9 +1,11 @@
 using AgroSolutions.Analise.WebApi.Domain;
 using AgroSolutions.Analise.WebApi.Infrastructure.Repositorios;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AgroSolutions.Analise.WebApi.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/v1/analise")]
 public class AnaliseController : ControllerBase

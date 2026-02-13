@@ -68,12 +68,13 @@ kubectl apply -k infra/k8s/overlays/local
 
 ### 3. Configurar Credenciais do Simulador
 
-O Simulador roda como um CronJob e precisa se autenticar para enviar dados. Crie ou atualize o segredo com credenciais válidas de um usuário administrador:
+O Simulador roda como um CronJob e precisa se autenticar para enviar dados. Certifique-se de que o usuário existe (registre-o via API de Usuarios se necessário).
 
 ```bash
+# Crie o segredo com as mesmas credenciais usadas no registro
 kubectl create secret generic simulador-auth-secret \
   --from-literal=email='admin@agrosolutions.com' \
-  --from-literal=password='admin123' \
+  --from-literal=password='admin' \
   --namespace agrosolutions-local \
   --dry-run=client -o yaml | kubectl apply -f -
 ```

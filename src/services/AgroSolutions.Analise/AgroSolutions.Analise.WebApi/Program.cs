@@ -71,7 +71,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddHealthChecks()
-    .AddCheck<SqlServerHealthCheck>("sql");
+    .AddCheck<SqlServerHealthCheck>("sql", tags: new[] { "readiness" })
+    .AddCheck("self", () => Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy(), tags: new[] { "liveness" });
 
 // OpenTelemetry Metrics + Prometheus exporter
 var otel = builder.Services.AddOpenTelemetry().WithMetrics(metrics =>
@@ -118,8 +119,14 @@ app.UseSwaggerUI();
 app.MapPrometheusScrapingEndpoint("/metrics");
 
 // (Opcional) Health check básico
-app.MapHealthChecks("/health/live");
-app.MapHealthChecks("/health/ready");
+app.MapHealthChecks("/health/live", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+{
+    Predicate = r => r.Tags.Contains("liveness")
+});
+app.MapHealthChecks("/health/ready", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+{
+    Predicate = r => r.Tags.Contains("readiness")
+});
 
 app.UseAuthorization();
 

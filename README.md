@@ -72,7 +72,20 @@ Para rodar o projeto localmente e validar o fluxo completo:
 kubectl apply -k infra/k8s/overlays/local
 ```
 
-### 2. Autenticação (Obter Token)
+### 2. Autenticação (Registrar e Obter Token)
+
+**Passo 2.1: Registrar Usuário (Necessário na primeira execução)**
+**POST** `http://localhost:30001/api/usuarios/registrar`
+```json
+{
+  "nome": "Admin",
+  "email": "admin@agrosolutions.com",
+  "senha": "admin",
+  "tipoId": 1
+}
+```
+
+**Passo 2.2: Login**
 **POST** `http://localhost:30001/api/usuarios/login`
 ```json
 {
