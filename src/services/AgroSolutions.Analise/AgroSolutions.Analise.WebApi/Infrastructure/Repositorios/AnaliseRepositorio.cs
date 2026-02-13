@@ -16,24 +16,10 @@ public sealed class AnaliseRepositorio : IAnaliseRepositorio
     public async Task SalvarLeituraAsync(Leitura leitura)
     {
         const string sql = @"
-            IF OBJECT_ID('dbo.Leitura', 'U') IS NULL
-            BEGIN
-               CREATE TABLE dbo.Leitura (
-                   Id BIGINT IDENTITY(1,1) PRIMARY KEY,
-                   IdTalhao UNIQUEIDENTIFIER NOT NULL,
-                   DataHoraCapturaUtc DATETIME2 NOT NULL,
-                   TemperaturaCelsius DECIMAL(5,2) NULL,
-                   UmidadeSoloPercentual DECIMAL(5,2) NULL,
-                   PrecipitacaoMilimetros DECIMAL(5,2) NULL
-               );
-               CREATE INDEX IX_Leitura_IdTalhao ON dbo.Leitura(IdTalhao);
-            END
-
             INSERT INTO dbo.Leitura (IdTalhao, DataHoraCapturaUtc, TemperaturaCelsius, UmidadeSoloPercentual, PrecipitacaoMilimetros)
             VALUES (@IdTalhao, @DataHoraCapturaUtc, @TemperaturaCelsius, @UmidadeSoloPercentual, @PrecipitacaoMilimetros);";
 
-        // NOTA: O script de criação de tabela acima é apenas para facilitar a POC. Em produção, use Migrations.
-        // Assumindo que o banco de dados 'Analise' já existe.
+        // NOTA: Migrations gerenciadas via DbUp.
 
         await using var conn = _connectionFactory.Create();
         await conn.ExecuteAsync(sql, leitura);
@@ -42,19 +28,6 @@ public sealed class AnaliseRepositorio : IAnaliseRepositorio
     public async Task SalvarAlertaAsync(Alerta alerta)
     {
         const string sql = @"
-            IF OBJECT_ID('dbo.Alerta', 'U') IS NULL
-            BEGIN
-               CREATE TABLE dbo.Alerta (
-                   Id BIGINT IDENTITY(1,1) PRIMARY KEY,
-                   IdTalhao UNIQUEIDENTIFIER NOT NULL,
-                   Mensagem NVARCHAR(500) NOT NULL,
-                   Nivel VARCHAR(20) NOT NULL,
-                   DataHoraGeracaoUtc DATETIME2 NOT NULL,
-                   LeituraId BIGINT NULL
-               );
-               CREATE INDEX IX_Alerta_IdTalhao ON dbo.Alerta(IdTalhao);
-            END
-
             INSERT INTO dbo.Alerta (IdTalhao, Mensagem, Nivel, DataHoraGeracaoUtc, LeituraId)
             VALUES (@IdTalhao, @Mensagem, @Nivel, @DataHoraGeracaoUtc, @LeituraId);";
 

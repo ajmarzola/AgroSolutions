@@ -116,14 +116,11 @@ app.MapHealthChecks("/health/ready", new HealthCheckOptions
 
 app.MapPrometheusScrapingEndpoint();
 
-// Auto-Migration (Hackathon Mode)
-if (app.Configuration.GetValue<bool>("Db:AutoMigrate"))
+// Auto-Migration
+using (var scope = app.Services.CreateScope())
 {
-    using (var scope = app.Services.CreateScope())
-    {
-        var context = scope.ServiceProvider.GetRequiredService<PropriedadesDbContext>();
-        context.Database.Migrate();
-    }
+    var context = scope.ServiceProvider.GetRequiredService<PropriedadesDbContext>();
+    context.Database.Migrate();
 }
 
 Log.Information("{@StartupInfo}", new { Message = "Startup Completed", Service = "AgroSolutions.Propriedades.WebApi", OpenTelemetry = true, Serilog = true });

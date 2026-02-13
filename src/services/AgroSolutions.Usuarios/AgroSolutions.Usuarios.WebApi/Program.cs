@@ -122,6 +122,16 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
+// Executa Migrations (EF Core)
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AgroDbContext>();
+    if (db.Database.IsSqlServer())
+    {
+        db.Database.Migrate();
+    }
+}
+
 app.UseSwagger();
 app.UseSwaggerUI(c => {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "AgroSolutions API v1");

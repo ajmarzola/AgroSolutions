@@ -13,6 +13,8 @@ using Serilog;
 using Serilog.Enrichers.Span;
 using Serilog.Formatting.Compact;
 
+using AgroSolutions.Ingestao.WebApi.Infrastructure.Database; // Migrations extension
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Serilog Configuration
@@ -158,6 +160,9 @@ if (builder.Configuration.GetValue("OpenTelemetry:Enabled", false))
 }
 
 var app = builder.Build();
+
+// Executa Migrations (DbUp)
+app.MigrateDatabase();
 
 // HTTP pipeline
 app.UseSwagger();
