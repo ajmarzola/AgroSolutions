@@ -4,7 +4,7 @@ metadata:
   name: analise-config
 data:
   ASPNETCORE_ENVIRONMENT: Development
-  SqlServer__ConnectionString: "Server=sql-service;Database=AgroSolutionsAnalise;User Id=sa;Password=Password123!;TrustServerCertificate=True;"
+  SqlServer__ConnectionString: "Server=agrosolutions.database.windows.net;Database=Analise;User Id=usr_agro;Password=Fi@p2026;TrustServerCertificate=True;"
   OpenTelemetry__Enabled: "true"
   OpenTelemetry__Endpoint: "http://jaeger-collector:4317"
   Jwt__Key: "segredo_super_secreto_para_desenvolvimento_local"
@@ -34,7 +34,7 @@ metadata:
   name: propriedades-config
 data:
   ASPNETCORE_ENVIRONMENT: Development
-  ConnectionStrings__DefaultConnection: "Server=sql-service;Database=AgroSolutionsPropriedades;User Id=sa;Password=Password123!;TrustServerCertificate=True;"
+  ConnectionStrings__DefaultConnection: "Server=agrosolutions.database.windows.net;Database=Propriedades;User Id=usr_agro;Password=Fi@p2026;TrustServerCertificate=True;"
   OpenTelemetry__Enabled: "true"
   OpenTelemetry__Endpoint: "http://jaeger-collector:4317"
   Jwt__Key: "segredo_super_secreto_para_desenvolvimento_local"
