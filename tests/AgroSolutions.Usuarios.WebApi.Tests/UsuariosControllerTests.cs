@@ -37,7 +37,7 @@ public class UsuariosControllerTests
         _context.Usuarios.Add(new Usuario { Email = email, Senha = "hash", TipoId = 1 });
         await _context.SaveChangesAsync();
 
-        var dto = new RegistroUsuarioDto { Email = email, Senha = "123", TipoId = 1 };
+        var dto = new UsuarioRegistroDto { Email = email, Senha = "123", TipoId = 1 };
 
         // Act
         var result = await _controller.Registrar(dto);
@@ -51,7 +51,7 @@ public class UsuariosControllerTests
     public async Task Registrar_NovoUsuario_RetornaOk()
     {
         // Arrange
-        var dto = new RegistroUsuarioDto { Email = "novo@exemplo.com", Senha = "123", TipoId = 1 };
+        var dto = new UsuarioRegistroDto { Email = "novo@exemplo.com", Senha = "123", TipoId = 1 };
 
         // Act
         var result = await _controller.Registrar(dto);
@@ -76,7 +76,7 @@ public class UsuariosControllerTests
         var password = "SenhaForte123!";
         
         // Create user via controller to ensure hash consistency
-        await _controller.Registrar(new RegistroUsuarioDto { Email = email, Senha = password, TipoId = 1 });
+        await _controller.Registrar(new UsuarioRegistroDto { Email = email, Senha = password, TipoId = 1 });
 
         var dto = new LoginRequestDto { Email = email, Password = password };
 

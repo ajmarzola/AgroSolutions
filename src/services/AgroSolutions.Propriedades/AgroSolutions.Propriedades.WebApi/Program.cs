@@ -115,6 +115,7 @@ app.MapHealthChecks("/health/ready", new HealthCheckOptions
 });
 
 app.MapPrometheusScrapingEndpoint();
+app.MapControllers();
 
 // Auto-Migration
 using (var scope = app.Services.CreateScope())

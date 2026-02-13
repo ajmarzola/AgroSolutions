@@ -14,4 +14,10 @@
   <Folder Name="/src/services/AgroSolutions.Usuarios/">
     <Project Path="src/services/AgroSolutions.Usuarios/AgroSolutions.Usuarios.WebApi/AgroSolutions.Usuarios.WebApi.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/AgroSolutions.Analise.WebApi.Tests/AgroSolutions.Analise.WebApi.Tests.csproj" />
+    <Project Path="tests/AgroSolutions.Ingestao.WebApi.Tests/AgroSolutions.Ingestao.WebApi.Tests.csproj" />
+    <Project Path="tests/AgroSolutions.Propriedades.WebApi.Tests/AgroSolutions.Propriedades.WebApi.Tests.csproj" />
+    <Project Path="tests/AgroSolutions.Usuarios.WebApi.Tests/AgroSolutions.Usuarios.WebApi.Tests.csproj" />
+  </Folder>
 </Solution>

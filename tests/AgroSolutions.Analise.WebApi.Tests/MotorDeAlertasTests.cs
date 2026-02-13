@@ -87,19 +87,22 @@ public class MotorDeAlertasTests
         var idTalhao = Guid.NewGuid();
         var leitura = new Leitura { UmidadeSoloPercentual = 29, IdTalhao = idTalhao };
         
-        var historico = new List<Leitura>
+        var historico = new List<Leitura>();
+        for (int i = 0; i < 10; i++)
         {
-            new Leitura { UmidadeSoloPercentual = 28, IdTalhao = idTalhao },
-            new Leitura { UmidadeSoloPercentual = 25, IdTalhao = idTalhao }
-        };
+            historico.Add(new Leitura { UmidadeSoloPercentual = 28, IdTalhao = idTalhao });
+        }
 
         _repoMock.Setup(r => r.GetLeiturasUltimas24HorasAsync(idTalhao))
                  .ReturnsAsync(historico);
+
+        _repoMock.Setup(r => r.ExisteAlertaRecenteAsync(idTalhao, It.IsAny<string>(), It.IsAny<DateTime>()))
+                 .ReturnsAsync(false);
 
         // Act
         var alertas = await _motor.AvaliarLeituraAsync(leitura);
 
         // Assert
-        Assert.Contains(alertas, a => a.Mensagem.Contains("Risco de Seca"));
+        Assert.Contains(alertas, a => a != null && a.Mensagem != null && a.Mensagem.Contains("Risco de Seca"));
     }
 }

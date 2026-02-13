@@ -1,9 +1,12 @@
+using System.Diagnostics.Metrics;
 using AgroSolutions.Ingestao.WebApi.Contracts.Requests;
 using AgroSolutions.Ingestao.WebApi.Contracts.Responses;
 using AgroSolutions.Ingestao.WebApi.Controllers;
 using AgroSolutions.Ingestao.WebApi.Domain;
 using AgroSolutions.Ingestao.WebApi.Infrastructure.Mensageria;
+using AgroSolutions.Ingestao.WebApi.Infrastructure.Observability;
 using AgroSolutions.Ingestao.WebApi.Infrastructure.Repositorios;
+using AgroSolutions.Ingestao.WebApi.Infrastructure.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -18,18 +21,66 @@ public class LeiturasSensoresControllerTests
     private const string OrigemTeste = "teste";
     private readonly Mock<ILeituraSensorRepositorio> _repositorioMock;
     private readonly Mock<IEventoPublisher> _publisherMock;
+    private readonly Mock<IPropriedadesService> _propriedadesServiceMock;
     private readonly LeiturasSensoresController _controller;
 
     public LeiturasSensoresControllerTests()
     {
         _repositorioMock = new Mock<ILeituraSensorRepositorio>();
         _publisherMock = new Mock<IEventoPublisher>();
+        _propriedadesServiceMock = new Mock<IPropriedadesService>();
+        
         var logger = NullLogger<LeiturasSensoresController>.Instance;
+
+        // Metric setup
+        var meterFactoryMock = new Mock<IMeterFactory>();
+        // Using a real Meter for simplicity as mocking final classes/methods is hard, 
+        // but we just need it not to crash.
+        // However, Meter constructor is protected or internal often? 
+        // Actually Meter public constructor exists in .NET 8.
+        // Let's rely on a simple factory implementation or minimal mock setup.
+        // If IMeterFactory is mocked to return a dummy Meter, CreateCounter works.
+        
+        // For unit testing, we can just pass a dummy implementation of IngestaoMetrics if possible, 
+        // but it's a concrete class. 
+        // Let's create a real instance with a mocked factory that returns a real Meter.
+        meterFactoryMock.Setup(x => x.Create(It.IsAny<MeterOptions>())).Returns(new Meter("TestMeter"));
+        // Note: IMeterFactory.Create overload might vary.
+
+        // Simpler approach: If we don't assert on metrics, we just need it to run.
+        // But IngestaoMetrics calls .Create and .CreateCounter in constructor.
+        
+        // Let's try passing null for metrics first? No, constructor uses it.
+        // We'll use a test-friendly approach.
+        
+        /* 
+           Since .NET 8, we can just use the ServiceCollection to get a real IMeterFactory 
+           or just mock it to return a new Meter("name").
+        */
+        
+        var meter = new Meter("AgroSolutions.Ingestao.Tests");
+        meterFactoryMock.Setup(m => m.Create(It.IsAny<MeterOptions>())).Returns(meter);
+        var metrics = new IngestaoMetrics(meterFactoryMock.Object);
+
+        // Setup successful validation by default to keep existing tests passing
+        _propriedadesServiceMock.Setup(x => x.ValidateTalhaoOwnershipAsync(It.IsAny<Guid>(), It.IsAny<string>()))
+            .ReturnsAsync(true);
 
         _controller = new LeiturasSensoresController(
             _repositorioMock.Object,
             _publisherMock.Object,
-            logger);
+            logger,
+            metrics,
+            _propriedadesServiceMock.Object);
+        
+        // Mock ControllerContext for User/Auth if needed, 
+        // but existing tests might not use [Authorize] attributes validation 
+        // unless integration tests. 
+        // Use default if tests invoke method directly.
+        // The controller checks token in header.
+        var httpContext = new DefaultHttpContext();
+        httpContext.Request.Headers["Authorization"] = "Bearer token-mock";
+        _controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
     }
 
     [Fact]

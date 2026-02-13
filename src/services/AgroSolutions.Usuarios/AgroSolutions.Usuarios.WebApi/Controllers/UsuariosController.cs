@@ -49,9 +49,11 @@ namespace AgroSolutions.Usuarios.WebApi.Controllers
                 Subject = new ClaimsIdentity(new[] {
                     new Claim(ClaimTypes.Email, user.Email),
                     new Claim(ClaimTypes.Role, user.Tipo?.Descricao ?? "Produtor"),
-                    new Claim("UsuarioId", user.Id.ToString())
+                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
                 }),
                 Expires = DateTime.UtcNow.AddHours(8),
+                Audience = _config["Jwt:Audience"],
+                Issuer = _config["Jwt:Issuer"],
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
 

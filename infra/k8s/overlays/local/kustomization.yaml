@@ -9,7 +9,6 @@ resources:
 - ../../base/usuarios
 - ../../base/observability
 - ../../base/database
-- ../../rabbitmq
 - logging/loki.yaml
 - logging/promtail.yaml
 - monitoring/servicemonitors.yaml
@@ -52,6 +51,8 @@ secretGenerator:
     literals:
     - RABBITMQ_DEFAULT_USER=guest
     - RABBITMQ_DEFAULT_PASS=guest
+    - RABBITMQ_USERNAME=guest
+    - RABBITMQ_PASSWORD=guest
   - name: grafana-env-secret
     envs:
     - .env
