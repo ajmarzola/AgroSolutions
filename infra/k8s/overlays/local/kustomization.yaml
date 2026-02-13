@@ -49,8 +49,9 @@ secretGenerator:
     envs:
     - .env
   - name: rabbitmq-secret
-    envs:
-    - .env
+    literals:
+    - RABBITMQ_DEFAULT_USER=guest
+    - RABBITMQ_DEFAULT_PASS=guest
   - name: grafana-env-secret
     envs:
     - .env
