@@ -32,6 +32,9 @@ spec:
                 name: agrosolutions-auth-secrets
             - configMapRef:
                 name: propriedades-config
+          env:
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://jaeger-collector:4317"
           # Se tiver segredos (JWT keys, connection strings), use Secret (não ConfigMap)
           # envFrom:
           #   - secretRef:

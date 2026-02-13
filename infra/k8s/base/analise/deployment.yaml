@@ -47,6 +47,8 @@ spec:
                 secretKeyRef:
                   name: rabbitmq-secret
                   key: RABBITMQ_DEFAULT_PASS
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://jaeger-collector:4317"
           # Se tiver segredos (JWT keys, connection strings), use Secret (não ConfigMap)
           # envFrom:
           #   - secretRef:

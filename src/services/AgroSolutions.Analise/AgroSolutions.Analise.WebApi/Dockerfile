@@ -37,17 +37,11 @@ RUN dotnet publish src/services/AgroSolutions.Analise/AgroSolutions.Analise.WebA
 # =========================
 # 2) Runtime (imagem final)
 # =========================
-FROM mcr.microsoft.com/dotnet/aspnet:${DOTNET_VERSION}-alpine AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:${DOTNET_VERSION} AS runtime
 WORKDIR /app
 
-# Cria usuário/grupo não-root
-RUN addgroup -S appgrp && adduser -S -u 1000 appusr -G appgrp
-
-# Instalar libs de globalização para o SqlClient funcionar no Alpine
-RUN apk add --no-cache icu-libs
-ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
-
-USER 1000
+# Non-root user
+USER 1654
 
 # Porta padrão (ajuste se necessário)
 ENV ASPNETCORE_URLS=http://+:8080
