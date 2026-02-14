@@ -132,6 +132,27 @@ Substitua `{id}` pelo ID da propriedade criada.
    Acesse `http://localhost:3000` (User/Pass: `admin`/`admin`).
    Veja o dashboard "AgroSolutions Monitor" com os alertas gerados.
 
+### 5. Executar Script de Testes Automatizados (QA Validation)
+
+Para validar a integridade de todo o fluxo (Infra, Auth, Ingestão, Mensageria e Banco de Dados), execute o script de validação:
+
+**Pré-requisitos:** Python 3 instalado.
+
+```bash
+# Instalar dependências (se necessário)
+pip install requests pyodbc
+
+# Executar script de validação v2
+python tests/qa_validation_v2.py
+```
+
+O script realizará:
+1. Verificação de conexão SQL e autenticação.
+2. Criação de usuários, propriedades e talhões.
+3. Envio de leituras de sensores (Ingestão).
+4. Validação do processamento assíncrono (RabbitMQ -> Analise -> DB).
+5. Verificação de geração de Alertas de negócio.
+
 ---
 
 ## 🔧 Troubleshooting
