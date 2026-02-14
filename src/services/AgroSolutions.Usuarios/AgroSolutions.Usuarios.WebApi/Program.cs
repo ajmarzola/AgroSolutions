@@ -129,6 +129,16 @@ using (var scope = app.Services.CreateScope())
     if (db.Database.IsSqlServer())
     {
         db.Database.Migrate();
+
+        if (!db.TiposUsuarios.Any())
+        {
+            db.TiposUsuarios.AddRange(
+                new AgroSolutions.Usuarios.WebApi.Entity.TipoUsuario { Descricao = "Produtor" },
+                new AgroSolutions.Usuarios.WebApi.Entity.TipoUsuario { Descricao = "Administrador" }
+            );
+            db.SaveChanges();
+            Log.Information("Seeding Data Completed");
+        }
     }
 }
 

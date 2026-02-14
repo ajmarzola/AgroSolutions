@@ -91,12 +91,8 @@ public sealed class LeiturasSensoresController : ControllerBase
         // Publica evento para o serviço de Análise (assíncrono)
         await _publisher.PublicarLeituraRecebidaAsync(leitura, ct);
 
-        return CreatedAtAction(nameof(ConsultarAsync), new
-        {
-            idTalhao = leitura.IdTalhao,
-            deUtc = leitura.DataHoraCapturaUtc.AddMinutes(-1).ToString("O"),
-            ateUtc = leitura.DataHoraCapturaUtc.AddMinutes(1).ToString("O")
-        }, new { id = leitura.Id });
+        // Retorna 201 Created com o ID gerado
+        return StatusCode(StatusCodes.Status201Created, new { id = leitura.Id });
     }
 
     [HttpGet]
