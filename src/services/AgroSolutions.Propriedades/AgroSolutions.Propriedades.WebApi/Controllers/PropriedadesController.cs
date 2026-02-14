@@ -37,7 +37,10 @@ public class PropriedadesController : ControllerBase
     public async Task<ActionResult<PropriedadeDto>> CreatePropriedade(CreatePropriedadeDto dto)
     {
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userId)) return Unauthorized();
+        if (string.IsNullOrEmpty(userId))
+        {
+            return Unauthorized();
+        }
 
         var propriedade = new Propriedade
         {
@@ -59,10 +62,16 @@ public class PropriedadesController : ControllerBase
     public async Task<ActionResult<IEnumerable<TalhaoDto>>> GetTalhoes(Guid id)
     {
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userId)) return Unauthorized();
+        if (string.IsNullOrEmpty(userId))
+        {
+            return Unauthorized();
+        }
 
         var exists = await _context.Propriedades.AnyAsync(p => p.Id == id && p.OwnerUserId == userId);
-        if (!exists) return NotFound("Propriedade não encontrada");
+        if (!exists)
+        {
+            return NotFound("Propriedade não encontrada");
+        }
 
         var talhoes = await _context.Talhoes
             .Where(t => t.PropriedadeId == id)
@@ -77,10 +86,16 @@ public class PropriedadesController : ControllerBase
     public async Task<ActionResult<TalhaoDto>> CreateTalhao(Guid id, CreateTalhaoDto dto)
     {
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userId)) return Unauthorized();
+        if (string.IsNullOrEmpty(userId))
+        {
+            return Unauthorized();
+        }
 
         var propriedade = await _context.Propriedades.FindAsync(id);
-        if (propriedade == null || propriedade.OwnerUserId != userId) return NotFound("Propriedade não encontrada");
+        if (propriedade == null || propriedade.OwnerUserId != userId)
+        {
+            return NotFound("Propriedade não encontrada");
+        }
 
         var talhao = new Talhao
         {
@@ -103,7 +118,10 @@ public class PropriedadesController : ControllerBase
     public async Task<ActionResult<TalhaoDto>> GetTalhao(Guid id)
     {
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userId)) return Unauthorized();
+        if (string.IsNullOrEmpty(userId))
+        {
+            return Unauthorized();
+        }
 
         var talhao = await _context.Talhoes
             .Join(_context.Propriedades,
@@ -113,10 +131,15 @@ public class PropriedadesController : ControllerBase
             .Where(x => x.Talhao.Id == id)
             .FirstOrDefaultAsync();
 
-        if (talhao == null) return NotFound("Talhão não encontrado.");
+        if (talhao == null)
+        {
+            return NotFound("Talhão não encontrado.");
+        }
 
         if (talhao.Propriedade.OwnerUserId != userId)
+        {
             return StatusCode(StatusCodes.Status403Forbidden, "Você não tem permissão para acessar este talhão.");
+        }
 
         return Ok(new TalhaoDto(talhao.Talhao.Id, talhao.Talhao.PropriedadeId, talhao.Talhao.Nome, talhao.Talhao.Cultura, talhao.Talhao.Area));
     }

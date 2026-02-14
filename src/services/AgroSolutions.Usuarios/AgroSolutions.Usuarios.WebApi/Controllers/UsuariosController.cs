@@ -103,7 +103,11 @@ namespace AgroSolutions.Usuarios.WebApi.Controllers
         public async Task<IActionResult> Remover(int id)
         {
             var user = await _context.Usuarios.FindAsync(id);
-            if (user == null) return NotFound();
+            if (user == null)
+            {
+                return NotFound();
+            }
+
             _context.Usuarios.Remove(user);
             await _context.SaveChangesAsync();
             return NoContent();

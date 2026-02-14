@@ -54,11 +54,19 @@ var rnd = new Random(options.Seed);
 // Helper para validar JWT (expiração)
 bool IsTokenValid(string? token)
 {
-    if (string.IsNullOrWhiteSpace(token)) return false;
+    if (string.IsNullOrWhiteSpace(token))
+    {
+        return false;
+    }
+
     try
     {
         var parts = token.Split('.');
-        if (parts.Length != 3) return false;
+        if (parts.Length != 3)
+        {
+            return false;
+        }
+
         var payload = parts[1].Replace('-', '+').Replace('_', '/'); 
         switch (payload.Length % 4) 
         {
@@ -106,7 +114,9 @@ for (var i = 0; i < options.TotalPorTalhao; i++)
         {
             // Apenas loga aviso se não tiver credenciais para renovar
              if (string.IsNullOrWhiteSpace(currentToken))
+            {
                 Console.WriteLine("[AUTH] Sem token e sem credenciais configuradas.");
+            }
         }
     }
 
@@ -151,7 +161,9 @@ for (var i = 0; i < options.TotalPorTalhao; i++)
     }
 
     if (i < options.TotalPorTalhao - 1)
+    {
         await Task.Delay(TimeSpan.FromSeconds(options.IntervaloSeconds));
+    }
 }
 
 Console.WriteLine();

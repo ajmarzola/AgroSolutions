@@ -19,7 +19,9 @@ public sealed class SqlConnectionFactory : ISqlConnectionFactory
     public SqlConnection Create()
     {
         if (string.IsNullOrWhiteSpace(_options.ConnectionString))
+        {
             throw new InvalidOperationException("SqlServer:ConnectionString não configurada.");
+        }
 
         return new SqlConnection(_options.ConnectionString);
     }

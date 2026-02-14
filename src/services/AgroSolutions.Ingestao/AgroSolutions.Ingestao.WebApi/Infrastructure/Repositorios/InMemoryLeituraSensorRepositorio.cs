@@ -45,7 +45,9 @@ public sealed class InMemoryLeituraSensorRepositorio : ILeituraSensorRepositorio
             .ToList();
 
         if (agruparMinutos is null || agruparMinutos <= 0)
+        {
             return Task.FromResult<IReadOnlyList<LeituraSensor>>(rows);
+        }
 
         var bucket = TimeSpan.FromMinutes(agruparMinutos.Value);
 

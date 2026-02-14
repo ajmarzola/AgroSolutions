@@ -49,9 +49,16 @@ internal sealed record SimuladorOptions(
         // Args (superam env vars). Formato: --key=value
         foreach (var a in args)
         {
-            if (!a.StartsWith("--", StringComparison.Ordinal)) continue;
+            if (!a.StartsWith("--", StringComparison.Ordinal))
+            {
+                continue;
+            }
+
             var parts = a.Substring(2).Split('=', 2);
-            if (parts.Length != 2) continue;
+            if (parts.Length != 2)
+            {
+                continue;
+            }
 
             var key = parts[0].Trim().ToLowerInvariant();
             var value = parts[1].Trim();
@@ -91,7 +98,10 @@ internal sealed record SimuladorOptions(
             .Distinct()
             .ToList();
 
-        if (talhoes.Count == 0) talhoes.Add(Guid.Parse("00000000-0000-0000-0000-000000000001"));
+        if (talhoes.Count == 0)
+        {
+            talhoes.Add(Guid.Parse("00000000-0000-0000-0000-000000000001"));
+        }
 
         return new SimuladorOptions(
             BaseUrl: baseUrl,
@@ -126,18 +136,30 @@ internal sealed record SimuladorOptions(
 
     private static Guid ParseGuidOrDeterministic(string value)
     {
-        if (Guid.TryParse(value, out var guid)) return guid;
+        if (Guid.TryParse(value, out var guid))
+        {
+            return guid;
+        }
+
         if (int.TryParse(value, out var num))
+        {
             return Guid.Parse($"00000000-0000-0000-0000-{num:D12}");
+        }
 
         return Guid.Parse("00000000-0000-0000-0000-000000000001");
     }
 
     private static Guid? ParseGuidOrDeterministicOrNull(string value)
     {
-        if (Guid.TryParse(value, out var guid)) return guid;
+        if (Guid.TryParse(value, out var guid))
+        {
+            return guid;
+        }
+
         if (int.TryParse(value, out var num))
+        {
             return Guid.Parse($"00000000-0000-0000-0000-{num:D12}");
+        }
 
         return null;
     }
@@ -182,7 +204,11 @@ internal sealed record LeituraSensorDto(
 
     private static decimal NextRange(Random rnd, decimal min, decimal max)
     {
-        if (max <= min) return min;
+        if (max <= min)
+        {
+            return min;
+        }
+
         var r = (decimal)rnd.NextDouble();
         return min + (r * (max - min));
     }

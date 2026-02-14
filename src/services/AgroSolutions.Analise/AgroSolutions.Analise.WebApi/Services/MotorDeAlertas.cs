@@ -24,16 +24,22 @@ public class MotorDeAlertas : IMotorDeAlertas
         if (leitura.TemperaturaCelsius.HasValue)
         {
             if (leitura.TemperaturaCelsius > 35)
+            {
                 alertas.Add(CriarAlerta(leitura, "Temperatura Crítica (> 35°C)", "Critical"));
+            }
             else if (leitura.TemperaturaCelsius < 0)
+            {
                 alertas.Add(CriarAlerta(leitura, "Risco de Geada (< 0°C)", "Warning"));
+            }
         }
 
         if (leitura.UmidadeSoloPercentual.HasValue)
         {
             if (leitura.UmidadeSoloPercentual < 20)
+            {
                 alertas.Add(CriarAlerta(leitura, "Seca Extrema (Umidade < 20%)", "Critical"));
-            
+            }
+
             // Nova regra de negócio: Risco de Seca (Umidade < 30% nas últimas 24h)
             // Requisito: Pelo menos 10 leituras no período
             var ultimasLeituras = (await _repositorio.GetLeiturasUltimas24HorasAsync(leitura.IdTalhao)).ToList();

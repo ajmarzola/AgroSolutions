@@ -84,7 +84,10 @@ public class RabbitMqLeiturasConsumerTests
         var method = typeof(RabbitMqLeiturasConsumer)
             .GetMethod("ProcessarMensagemAsync", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
         
-        if (method == null) throw new Exception("Method ProcessarMensagemAsync not found");
+        if (method == null)
+        {
+            throw new Exception("Method ProcessarMensagemAsync not found");
+        }
 
         await (Task)method.Invoke(consumer, new object[] { json })!;
 

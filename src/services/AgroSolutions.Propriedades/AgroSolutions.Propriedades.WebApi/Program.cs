@@ -35,7 +35,11 @@ builder.Services.AddDbContext<PropriedadesDbContext>(options =>
 
 // JWT Configuration
 var jwtKey = builder.Configuration["Jwt:Key"];
-if (string.IsNullOrEmpty(jwtKey)) throw new Exception("Jwt:Key is missing in configuration");
+if (string.IsNullOrEmpty(jwtKey))
+{
+    throw new Exception("Jwt:Key is missing in configuration");
+}
+
 var key = Encoding.UTF8.GetBytes(jwtKey);
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

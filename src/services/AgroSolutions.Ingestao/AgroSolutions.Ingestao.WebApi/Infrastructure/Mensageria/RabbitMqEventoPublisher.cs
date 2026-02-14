@@ -58,7 +58,10 @@ public sealed class RabbitMqEventoPublisher : IEventoPublisher, IDisposable
     {
         lock (_lock)
         {
-            if (_connection != null && _connection.IsOpen) return;
+            if (_connection != null && _connection.IsOpen)
+            {
+                return;
+            }
 
             var connectPolicy = Policy.Handle<Exception>()
                 .WaitAndRetry(2, r => TimeSpan.FromSeconds(1));

@@ -43,7 +43,10 @@ public sealed class LeiturasSensoresController : ControllerBase
     {
         // Cross-Tenant Validation
         var token = Request.Headers.Authorization.ToString();
-        if (string.IsNullOrEmpty(token)) return Unauthorized();
+        if (string.IsNullOrEmpty(token))
+        {
+            return Unauthorized();
+        }
 
         var isOwner = await _propriedadesService.ValidateTalhaoOwnershipAsync(request.IdTalhao, token);
         if (!isOwner)
@@ -105,10 +108,14 @@ public sealed class LeiturasSensoresController : ControllerBase
         CancellationToken ct)
     {
         if (idTalhao == Guid.Empty)
+        {
             return BadRequest("idTalhao é obrigatório.");
+        }
 
         if (deUtc == default || ateUtc == default || ateUtc <= deUtc)
+        {
             return BadRequest("Intervalo inválido. Informe deUtc e ateUtc (ateUtc > deUtc).");
+        }
 
         var rows = await _repositorio.ConsultarAsync(idTalhao, DateTime.SpecifyKind(deUtc, DateTimeKind.Utc),
             DateTime.SpecifyKind(ateUtc, DateTimeKind.Utc), agruparMinutos, ct);
