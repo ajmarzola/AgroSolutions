@@ -37,7 +37,7 @@ namespace AgroSolutions.Usuarios.WebApi.Controllers
             }
 
             var tokenHandler = new JwtSecurityTokenHandler();
-            string keyString = _config["Jwt:Key"];
+            string? keyString = _config["Jwt:Key"];
             if (string.IsNullOrEmpty(keyString))
             {
                 throw new InvalidOperationException("JWT Key não configurada.");
