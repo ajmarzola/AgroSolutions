@@ -138,11 +138,9 @@ public class LeiturasSensoresControllerTests
         var result = await _controller.CriarAsync(request, CancellationToken.None);
 
         // Assert
-        var createdResult = Assert.IsType<CreatedAtActionResult>(result);
-        Assert.Equal(nameof(LeiturasSensoresController.ConsultarAsync), createdResult.ActionName);
-        Assert.NotNull(createdResult.RouteValues);
-        Assert.True(createdResult.RouteValues.ContainsKey("idTalhao"));
-        
+        var createdResult = Assert.IsType<ObjectResult>(result);
+        Assert.Equal(StatusCodes.Status201Created, createdResult.StatusCode);
+
         // Verificando o corpo da resposta
         var body = createdResult.Value;
         Assert.NotNull(body);
@@ -249,7 +247,9 @@ public class LeiturasSensoresControllerTests
         var result = await _controller.CriarAsync(request, CancellationToken.None);
 
         // Assert
-        Assert.IsType<CreatedAtActionResult>(result);
+        var createdResult = Assert.IsType<ObjectResult>(result);
+        Assert.Equal(StatusCodes.Status201Created, createdResult.StatusCode);
+
         _repositorioMock.Verify(x => x.InserirAsync(It.Is<LeituraSensor>(l => l.IdDispositivo == null && l.CorrelationId == null), It.IsAny<CancellationToken>()), Times.Once);
     }
 
