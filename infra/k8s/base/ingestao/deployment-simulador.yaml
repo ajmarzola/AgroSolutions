@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ingestao-simulador
+  labels:
+    app.kubernetes.io/name: ingestao-simulador
+    app.kubernetes.io/part-of: agrosolutions-platform
+    app.kubernetes.io/component: simulator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ingestao-simulador
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: ingestao-simulador
+    spec:
+      containers:
+        - name: simulador
+          image: ingestao-simulador
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: ingestao-config
+            - configMapRef:
+                name: rabbitmq-config
+            - secretRef:
+                name: agrosolutions-auth-secrets
+            - secretRef:
+                name: rabbitmq-secret
+          env:
+            - name: RabbitMq__UserName
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-secret
+                  key: RABBITMQ_USERNAME
+            - name: RabbitMq__Password
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-secret
+                  key: RABBITMQ_PASSWORD
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://otel-collector:4317"
+            # Simulador options
+            - name: INTERVALO_SECONDS
+              value: "15" # Default 15s
+            - name: TOTAL_POR_TALHAO
+              value: "5"  # 5 leituras por talhao por intervalo
+            - name: MULTI_PROPRIEDADE
+              value: "true"
+            - name: INGESTAO_BASE_URL
+              value: "http://ingestao"
+            - name: SIM_USER_EMAIL
+              value: "admin@agrosolutions.com"
+            - name: SIM_USER_PASSWORD
+              value: "Admin123!"
+            - name: AUTH_BASE_URL
+              value: "http://usuarios"

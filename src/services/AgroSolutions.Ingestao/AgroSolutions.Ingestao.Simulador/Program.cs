@@ -92,19 +92,14 @@ bool IsTokenValid(string? token)
 
 // Loop principal de simulação temporal
 Console.WriteLine("Pressione ENTER para iniciar a simulação ('Start')...");
-Console.ReadLine();
+// Console.ReadLine(); // Removido para execução automática em container
 
-var startTime = DateTime.UtcNow;
-var duration = TimeSpan.FromMinutes(10);
-var interval = TimeSpan.FromMinutes(1);
-var endTime = startTime.Add(duration);
-var minute = 0;
+var interval = TimeSpan.FromSeconds(options.IntervaloSeconds);
 
-Console.WriteLine($"Iniciando simulação de {duration.TotalMinutes} minutos com intervalo de {interval.TotalMinutes} minuto(s)...");
+Console.WriteLine($"Iniciando simulação contínua com intervalo de {interval.TotalSeconds} segundo(s)...");
 
-while (DateTime.UtcNow < endTime)
+while (true)
 {
-    minute++;
     // Auth Logic: Renovação de Token
     if (!IsTokenValid(currentToken))
     {
@@ -134,58 +129,57 @@ while (DateTime.UtcNow < endTime)
     }
 
     int generatedCount = 0;
+    Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Enviando lote de {options.Talhoes.Count * options.TotalPorTalhao} mensagens para a fila...");
+
     foreach (var idTalhao in options.Talhoes)
     {
-        // ... (resto do loop, mantendo a lógica de envio)
-        // Simula multi-propriedade para variar métricas de negócio
-        var currentOptions = options;
-        // Se a variável de ambiente MULTI_PROPRIEDADE=true, varia IDs
-        if (Environment.GetEnvironmentVariable("MULTI_PROPRIEDADE") == "true")
+        // Envia lote configurado por talhão
+        for (int i = 0; i < options.TotalPorTalhao; i++)
         {
-             // 50% de chance de mudar a propriedade para gerar volume distribuído
-             if (rnd.NextDouble() > 0.5) 
-             {
-                 var suffix = rnd.Next(2, 6); // ex: ...0002 a ...0005
-                 var randomProp = Guid.Parse($"00000000-0000-0000-0000-00000000000{suffix}");
-                 currentOptions = options with { IdPropriedade = randomProp };
-             }
-        }
-
-        var leitura = LeituraSensorDto.CriarAleatoria(idTalhao, currentOptions, rnd);
-
-        var content = new StringContent(JsonSerializer.Serialize(leitura, jsonOptions), Encoding.UTF8, "application/json");
-
-        try
-        {
-            var resp = await http.PostAsync("api/v1/leituras-sensores", content);
-            var body = await resp.Content.ReadAsStringAsync();
-
-            if (!resp.IsSuccessStatusCode)
+            // Simula multi-propriedade para variar métricas de negócio
+            var currentOptions = options;
+            // Se a variável de ambiente MULTI_PROPRIEDADE=true, varia IDs
+            if (Environment.GetEnvironmentVariable("MULTI_PROPRIEDADE") == "true")
             {
-                Console.WriteLine($"[ERRO] Talhão={idTalhao} Status={(int)resp.StatusCode} {resp.ReasonPhrase} Body={body}");
+                // 50% de chance de mudar a propriedade para gerar volume distribuído
+                if (rnd.NextDouble() > 0.5) 
+                {
+                    var suffix = rnd.Next(2, 6); // ex: ...0002 a ...0005
+                    var randomProp = Guid.Parse($"00000000-0000-0000-0000-00000000000{suffix}");
+                    currentOptions = options with { IdPropriedade = randomProp };
+                }
             }
-            else
+
+            var leitura = LeituraSensorDto.CriarAleatoria(idTalhao, currentOptions, rnd);
+
+            var content = new StringContent(JsonSerializer.Serialize(leitura, jsonOptions), Encoding.UTF8, "application/json");
+
+            try
             {
-                Console.WriteLine($"[OK] Talhão={idTalhao} CapturaUtc={leitura.DataHoraCapturaUtc:o} Umidade={leitura.Metricas.UmidadeSoloPercentual}% Temp={leitura.Metricas.TemperaturaCelsius}C Chuva={leitura.Metricas.PrecipitacaoMilimetros}mm");
+                var resp = await http.PostAsync("api/v1/leituras-sensores", content);
+                var body = await resp.Content.ReadAsStringAsync();
+
+                if (!resp.IsSuccessStatusCode)
+                {
+                    Console.WriteLine($"[ERRO] Talhão={idTalhao} Status={(int)resp.StatusCode} {resp.ReasonPhrase} Body={body}");
+                }
+                else
+                {
+                    // Log menos verboso para batches grandes, logar apenas a cada 10 envios ou se for o primeiro
+                    if (options.TotalPorTalhao <= 1 || i % 10 == 0)
+                        Console.WriteLine($"[OK] Talhão={idTalhao} ({i+1}/{options.TotalPorTalhao}) CapturaUtc={leitura.DataHoraCapturaUtc:o} Umidade={leitura.Metricas.UmidadeSoloPercentual}% Temp={leitura.Metricas.TemperaturaCelsius}C");
+                }
             }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[EXCEÇÃO] Talhão={idTalhao} {ex.GetType().Name}: {ex.Message}");
+            }
+            
+            generatedCount++;
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[EXCEÇÃO] Talhão={idTalhao} {ex.GetType().Name}: {ex.Message}");
-        }
-        
-        generatedCount++;
     }
 
-    Console.WriteLine($"Minuto {minute}: Dados gerados para {generatedCount} talhões.");
-
-    // Aguarda até o próximo minuto
-    var nextRunTime = startTime.Add(TimeSpan.FromMinutes(minute));
-    var delay = nextRunTime - DateTime.UtcNow;
-    if (delay > TimeSpan.Zero && nextRunTime < endTime)
-    {
-        await Task.Delay(delay);
-    }
+    await Task.Delay(interval);
 }
 
-Console.WriteLine("Simulação finalizada com sucesso.");
+Console.WriteLine("Simulação finalizada (interrompida).");

@@ -151,13 +151,13 @@ docker run --rm \
   ghcr.io/agrosolutions/ingestao-simulador:local
 ```
 
-### 3) Executar no Kubernetes via CronJob
+### 3) Executar no Kubernetes via Deployment
 
-O CronJob está definido em:
+O Simulador agora roda como um **Deployment** contínuo, definido em:
 
-- `infra/k8s/base/ingestao/cronjob-simulador.yaml`
+- `infra/k8s/base/ingestao/deployment-simulador.yaml`
 
-Ele é aplicado automaticamente quando você aplica o overlay (local/dev/prod), pois está referenciado no `kustomization.yaml` da base de ingestão.
+Ele é aplicado automaticamente quando você aplica o overlay (local/dev/prod), subindo uma réplica que gera dados constantemente.
 
 Aplicar (exemplo local):
 
@@ -165,18 +165,15 @@ Aplicar (exemplo local):
 kubectl apply -k infra/k8s/overlays/local
 ```
 
-Verificar execuções:
+Verificar execução:
 
 ```bash
-kubectl get cronjob -n agrosolutions-local
-kubectl get jobs -n agrosolutions-local
-kubectl get pods -n agrosolutions-local -l app.kubernetes.io/name=ingestao-simulador
-kubectl logs -n agrosolutions-local job/<nome-do-job>
+kubectl get pods -n agrosolutions-local -l app=ingestao-simulador
+kubectl logs -n agrosolutions-local -l app=ingestao-simulador -f
 ```
 
 Ajustes rápidos (para demo):
-- `spec.schedule` no CronJob (ex.: `*/1 * * * *` para rodar a cada 1 minuto)
-- `TALHOES`, `TOTAL_POR_TALHAO` e `INTERVALO_SECONDS` no manifest para controlar volume de pontos no Grafana.
+- Edite o `deployment-simulador.yaml` ou use `kubectl set env` para alterar variáveis como `TALHOES`, `TOTAL_POR_TALHAO` e `INTERVALO_SECONDS` se desejar controlar o volume de dados.
 
 ## Observabilidade
 
@@ -185,9 +182,9 @@ Ajustes rápidos (para demo):
 
 ---
 
-## Próximos passos (planejados)
+## Próximos passos / Backlog
 
-1. Adicionar autenticação JWT (integração com AgroSolutions.Usuarios)
-2. Adicionar **Worker de simulação** (Console App + CronJob no Kubernetes)
-3. Melhorar idempotência/eventId (Outbox simplificada, se necessário)
-4. Criar views específicas para Grafana (agregações, min/max, etc.)
+1. [x] Adicionar autenticação JWT (integração com AgroSolutions.Usuarios)
+2. [x] Adicionar **Worker de simulação** (Console App + Deployment no Kubernetes)
+3. Criar views específicas para Grafana (agregações, min/max, etc.)
+4. Melhorar idempotência/eventId (Outbox simplificada, se necessário)

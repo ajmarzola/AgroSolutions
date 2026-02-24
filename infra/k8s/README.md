@@ -68,16 +68,9 @@ kubectl apply -k infra/k8s/overlays/local
 
 ### 3. Configurar Credenciais do Simulador
 
-O Simulador roda como um CronJob e precisa se autenticar para enviar dados. Certifique-se de que o usuário existe (registre-o via API de Usuarios se necessário).
+O **Simulador** agora roda como um **Deployment contínuo** e já vem configurado para utilizar o usuário **Admin** padrão (`admin@agrosolutions.com` / `Admin123!`), que é criado automaticamente na inicialização do banco de dados.
 
-```bash
-# Crie o segredo com as mesmas credenciais usadas no registro
-kubectl create secret generic simulador-auth-secret \
-  --from-literal=email='admin@agrosolutions.com' \
-  --from-literal=password='admin' \
-  --namespace agrosolutions-local \
-  --dry-run=client -o yaml | kubectl apply -f -
-```
+> **Nota:** Não é mais necessário criar segredos manualmente para o simulador, a menos que você deseje alterar o usuário utilizado editando o manifesto do deployment.
 
 ### 4. Verificar Inicialização
 
@@ -94,10 +87,9 @@ Para confirmar que o fluxo completo (Simulador -> Ingestão -> RabbitMQ -> Anál
 
 1. **Verificar envio**:
    ```bash
-   # Encontre o pod do job mais recente
-   kubectl get pods -n agrosolutions-local -l app=ingestao-simulador
-   # Veja os logs
-   kubectl logs -n agrosolutions-local job/<nome-do-job> --tail=20
+   # Veja os logs do Deployment do Simulador
+   kubectl logs -n agrosolutions-local -l app=ingestao-simulador --tail=20 -f
+   ```
    ```
    *Logs esperados: "Login realizado com sucesso", "Leitura enviada".*
 

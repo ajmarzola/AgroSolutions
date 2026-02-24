@@ -45,7 +45,7 @@ Plataforma de referência para **agricultura de precisão**, com ingestão e an�
 - **AgroSolutions.Propriedades.WebApi** – Cadastro de propriedades e talhões.
 - **AgroSolutions.Ingestao.WebApi** – Recepção de leituras de sensores e persistência.
 - **AgroSolutions.Analise.WebApi** – Processamento e análise de dados.
-- **AgroSolutions.Ingestao.Simulador** – Console app para gerar leituras simuladas (Fluxo: Login em Usuarios -> Token JWT -> Post em Ingestao).
+- **AgroSolutions.Ingestao.Simulador** – Serviço (Deployment) que roda continuamente gerando leituras simuladas de sensores (Autentica com Admin -> Gera Token -> Post em Ingestao).
 
 Cada serviço é independente, containerizado e orquestrado via Kubernetes.
 
@@ -72,28 +72,25 @@ Para rodar o projeto localmente e validar o fluxo completo:
 kubectl apply -k infra/k8s/overlays/local
 ```
 
-### 2. Autenticação (Registrar e Obter Token)
+### 2. Autenticação (Usuário Admin Padrão)
 
-**Passo 2.1: Registrar Usuário (Necessário na primeira execução)**
-**POST** `http://localhost:30001/api/usuarios/registrar`
-```json
-{
-  "nome": "Admin",
-  "email": "admin@agrosolutions.com",
-  "senha": "admin",
-  "tipoId": 1
-}
-```
+O sistema já inicia com um usuário administrador pré-configurado via **Seed Database**. O **Simulador** utiliza este usuário automaticamente para gerar dados.
 
-**Passo 2.2: Login**
+**Credenciais Padrão:**
+- **Email:** `admin@agrosolutions.com`
+- **Senha:** `Admin123!`
+
+> **Nota:** Se desejar criar novos usuários, utilize os endpoints da API de Usuários.
+
+**Passo 2.1: Login (Manual - Opcional)**
 **POST** `http://localhost:30001/api/usuarios/login`
 ```json
 {
   "email": "admin@agrosolutions.com",
-  "password": "admin"
+  "password": "Admin123!"
 }
 ```
-*Copie o token `eyJ...` retornado.*
+*Copie o token `eyJ...` retornado se for realizar chamadas manuais.*
 
 ### 3. Criar Recursos com o Token
 Use o Header `Authorization: Bearer <SEU_TOKEN>` nas requisições abaixo.

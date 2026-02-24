@@ -5,4 +5,5 @@ resources:
   - configmap.yaml
   - deployment.yaml
   - service.yaml
-  - cronjob-simulador.yaml
+  # - cronjob-simulador.yaml # Substituído por Deployment
+  - deployment-simulador.yaml

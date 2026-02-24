@@ -151,8 +151,34 @@ using (var scope = app.Services.CreateScope())
                 new AgroSolutions.Usuarios.WebApi.Entity.TipoUsuario { Descricao = "Administrador" }
             );
             db.SaveChanges();
-            Log.Information("Seeding Data Completed");
         }
+
+        // Seeding Usuario Admin (para testes simulador)
+        var adminUser = db.Usuarios.FirstOrDefault(u => u.Email == "admin@agrosolutions.com");
+        var adminType = db.TiposUsuarios.FirstOrDefault(t => t.Descricao == "Administrador");
+        
+        if (adminType != null)
+        {
+            if (adminUser == null)
+            {
+                db.Usuarios.Add(new AgroSolutions.Usuarios.WebApi.Entity.Usuario
+                {
+                    Email = "admin@agrosolutions.com",
+                    Senha = BCrypt.Net.BCrypt.HashPassword("Admin123!"),
+                    TipoId = adminType.Id
+                });
+            }
+            else
+            {
+                // Force update password to ensure it matches what we expect
+                adminUser.Senha = BCrypt.Net.BCrypt.HashPassword("Admin123!");
+                adminUser.TipoId = adminType.Id;
+                db.Usuarios.Update(adminUser);
+            }
+            db.SaveChanges();
+        }
+            
+        Log.Information("Seeding Data Completed");
     }
 }
 
