@@ -2,6 +2,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading;
 using AgroSolutions.Ingestao.Simulador;
 using OpenTelemetry;
 using OpenTelemetry.Trace;
@@ -98,8 +99,17 @@ var interval = TimeSpan.FromSeconds(options.IntervaloSeconds);
 
 Console.WriteLine($"Iniciando simulação contínua com intervalo de {interval.TotalSeconds} segundo(s)...");
 
-while (true)
+using var cts = new CancellationTokenSource();
+Console.CancelKeyPress += (sender, e) =>
 {
+    e.Cancel = true;
+    cts.Cancel();
+};
+
+try
+{
+    while (!cts.Token.IsCancellationRequested)
+    {
     // Auth Logic: Renovação de Token
     if (!IsTokenValid(currentToken))
     {
@@ -179,7 +189,12 @@ while (true)
         }
     }
 
-    await Task.Delay(interval);
+    await Task.Delay(interval, cts.Token);
+    }
+}
+catch (OperationCanceledException)
+{
+    // Ignorar exception ao cancelar
 }
 
 Console.WriteLine("Simulação finalizada (interrompida).");
