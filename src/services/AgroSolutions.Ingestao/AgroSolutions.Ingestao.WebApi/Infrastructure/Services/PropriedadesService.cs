@@ -36,22 +36,22 @@ public class PropriedadesService : IPropriedadesService
 
             if (response.StatusCode == HttpStatusCode.Forbidden)
             {
-                _logger.LogWarning("Access forbidden for Talhao {TalhaoId}", idTalhao);
+                _logger.LogWarning("Access forbidden for Talhão {TalhaoId}", idTalhao);
                 return false;
             }
 
             if (response.StatusCode == HttpStatusCode.NotFound)
             {
-                 _logger.LogWarning("Talhao {TalhaoId} not found", idTalhao);
+                 _logger.LogWarning("Talhão {TalhaoId} not found", idTalhao);
                  return false;
             }
             
-            _logger.LogError("Unexpected status code {StatusCode} when validating Talhao {TalhaoId}", response.StatusCode, idTalhao);
+            _logger.LogError("Unexpected status code {StatusCode} when validating Talhão {TalhaoId}", response.StatusCode, idTalhao);
             return false;
         }
         catch (Exception ex)
         {
-             _logger.LogError(ex, "Error calling Propriedades service for Talhao {TalhaoId}", idTalhao);
+             _logger.LogError(ex, "Error calling Propriedades service for Talhão {TalhaoId}", idTalhao);
              return false;
         }
     }

@@ -179,13 +179,26 @@ internal sealed record LeituraSensorDto(
         // Pequena variação para ficar "orgânico"
         var now = DateTime.UtcNow;
 
-        var umidade = NextRange(rnd, options.UmidadeMin, options.UmidadeMax);
-        var temp = NextRange(rnd, options.TemperaturaMin, options.TemperaturaMax);
+        // Novos parâmetros conforme solicitação:
+        // Umidade do Solo: 15% a 40%
+        var umidade = NextRange(rnd, 15m, 40m);
+        
+        // Temperatura Ambiente: 18°C a 35°C
+        var temp = NextRange(rnd, 18m, 35m);
+
+        // Nível de Nitrogênio (N): 20 a 50 mg/kg
+        var nitrogenio = NextRange(rnd, 20m, 50m);
+
+        // Status do Sensor: 95% de chance de "Ativo", 5% de "Falha de Leitura"
+        var status = rnd.NextDouble() < 0.95 ? "Ativo" : "Falha de Leitura";
 
         // Chuva tende a ser 0 na maioria das vezes, com "picos" ocasionais
         var chuva = rnd.NextDouble() < 0.70
             ? 0m
             : NextRange(rnd, options.PrecipitacaoMin, options.PrecipitacaoMax);
+
+        // Se falha de leitura, talvez os valores devessem ser nulos? 
+        // A solicitação não especificou, mas vamos manter os valores gerados.
 
         return new LeituraSensorDto(
             options.IdPropriedade,
@@ -195,7 +208,9 @@ internal sealed record LeituraSensorDto(
             new MetricasDto(
                 Round2(umidade),
                 Round2(temp),
-                Round2(chuva)),
+                Round2(chuva),
+                Round2(nitrogenio),
+                status),
             new MetaDto(
                 options.IdDispositivo,
                 Guid.NewGuid().ToString("N"))
@@ -219,7 +234,9 @@ internal sealed record LeituraSensorDto(
 internal sealed record MetricasDto(
     [property: JsonPropertyName("umidadeSoloPercentual")] decimal? UmidadeSoloPercentual,
     [property: JsonPropertyName("temperaturaCelsius")] decimal? TemperaturaCelsius,
-    [property: JsonPropertyName("precipitacaoMilimetros")] decimal? PrecipitacaoMilimetros
+    [property: JsonPropertyName("precipitacaoMilimetros")] decimal? PrecipitacaoMilimetros,
+    [property: JsonPropertyName("nivelNitrogenio")] decimal? NivelNitrogenio,
+    [property: JsonPropertyName("statusSensor")] string? StatusSensor
 );
 
 internal sealed record MetaDto(

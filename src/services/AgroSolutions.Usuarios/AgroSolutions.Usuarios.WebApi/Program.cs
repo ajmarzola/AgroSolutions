@@ -116,6 +116,20 @@ builder.Services.AddSwaggerGen(c => {
             new string[] {}
         }
     });
+
+    var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    
+    // Check if the XML file exists and log relevant information
+    if (File.Exists(xmlPath))
+    {
+        Log.Information("Loading XML comments from: {XmlPath}", xmlPath);
+        c.IncludeXmlComments(xmlPath);
+    }
+    else
+    {
+        Log.Warning("XML comments file not found at: {XmlPath}", xmlPath);
+    }
 });
 
 builder.Services.AddAuthorization();

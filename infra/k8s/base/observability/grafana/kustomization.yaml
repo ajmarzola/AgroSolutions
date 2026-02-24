@@ -5,6 +5,7 @@ resources:
   - deployment.yaml
   - service.yaml
   - secret.yaml
+  - rbac.yaml
 
 configMapGenerator:
   - name: grafana-datasources
@@ -17,6 +18,7 @@ configMapGenerator:
     files:
       - dashboards/agrosolutions-apis-prometheus.json
       - dashboards/agrosolutions-business-metrics.json
+      - dashboards/monitoramento-talhoes.json
     options:
       labels:
         grafana_dashboard: "1"

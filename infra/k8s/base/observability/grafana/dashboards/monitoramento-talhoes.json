@@ -29,10 +29,7 @@
   "liveNow": false,
   "panels": [
     {
-      "datasource": {
-        "type": "mssql",
-        "uid": "mssql-analise"
-      },
+      "datasource": "${datasource}",
       "gridPos": {
         "h": 8,
         "w": 24,
@@ -57,7 +54,7 @@
           "dataset": "Leitura",
           "datasource": {
             "type": "mssql",
-            "uid": "mssql-analise"
+            "uid": "${datasource}"
           },
           "editorMode": "code",
           "format": "table",
@@ -69,10 +66,7 @@
       "type": "table"
     },
     {
-      "datasource": {
-        "type": "mssql",
-        "uid": "mssql-analise"
-      },
+      "datasource": "${datasource}",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -145,7 +139,7 @@
           "dataset": "Leitura",
           "datasource": {
             "type": "mssql",
-            "uid": "mssql-analise"
+            "uid": "${datasource}"
           },
           "editorMode": "code",
           "format": "time_series",
@@ -158,10 +152,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "mssql",
-        "uid": "mssql-analise"
-      },
+      "datasource": "${datasource}",
       "gridPos": {
         "h": 8,
         "w": 12,
@@ -185,7 +176,7 @@
           "dataset": "Alerta",
           "datasource": {
             "type": "mssql",
-            "uid": "mssql-analise"
+            "uid": "${datasource}"
           },
           "editorMode": "code",
           "format": "table",
@@ -205,9 +196,9 @@
     "list": [
       {
         "current": {
-          "selected": false,
+          "selected": true,
           "text": "SQLServer",
-          "value": "SQLServer"
+          "value": "mssql-analise"
         },
         "hide": 0,
         "includeAll": false,
@@ -230,8 +221,9 @@
   },
   "timepicker": {},
   "timezone": "",
-  "title": "Monitoramento de Talhões",
+  "title": "AgroSolutions Alerts",
   "uid": "monitoramento-talhoes",
   "version": 1,
   "weekStart": ""
 }
+

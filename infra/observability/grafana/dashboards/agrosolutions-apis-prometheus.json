@@ -267,7 +267,7 @@
       "type": "timeseries"
     }
   ],
-  "refresh": "10s",
+  "refresh": "1m",
   "schemaVersion": 39,
   "tags": [
     "agrosolutions",

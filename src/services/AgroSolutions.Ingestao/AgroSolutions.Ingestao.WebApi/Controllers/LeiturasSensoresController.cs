@@ -10,6 +10,9 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace AgroSolutions.Ingestao.WebApi.Controllers;
 
+/// <summary>
+/// Controladora responsável por receber e processar leituras de sensores IoT.
+/// </summary>
 [ApiController]
 [Route("api/v1/leituras-sensores")]
 public sealed class LeiturasSensoresController : ControllerBase
@@ -34,6 +37,19 @@ public sealed class LeiturasSensoresController : ControllerBase
         _propriedadesService = propriedadesService;
     }
 
+    /// <summary>
+    /// Recebe uma nova leitura de sensor.
+    /// </summary>
+    /// <remarks>
+    /// Valida se o usuário tem permissão para enviar dados para o talhão especificado e publica o evento para processamento.
+    /// </remarks>
+    /// <param name="request">Dados da leitura do sensor (talhão, métricas, etc).</param>
+    /// <param name="ct">Token de cancelamento.</param>
+    /// <returns>ID da leitura criada.</returns>
+    /// <response code="201">Leitura criada com sucesso.</response>
+    /// <response code="400">Dados inválidos (ex: nenhuma métrica informada).</response>
+    /// <response code="403">Sem permissão para o talhão informado.</response>
+    /// <response code="401">Não autorizado.</response>
     [Authorize]
     [HttpPost]
     [ProducesResponseType(typeof(object), StatusCodes.Status201Created)]
@@ -98,6 +114,17 @@ public sealed class LeiturasSensoresController : ControllerBase
         return StatusCode(StatusCodes.Status201Created, new { id = leitura.Id });
     }
 
+    /// <summary>
+    /// Consulta o histórico de leituras de um talhão.
+    /// </summary>
+    /// <param name="idTalhao">ID do talhão para consulta.</param>
+    /// <param name="deUtc">Data inicial (UTC).</param>
+    /// <param name="ateUtc">Data final (UTC).</param>
+    /// <param name="agruparMinutos">Opcional: Agrupar leituras em janelas de tempo (minutos).</param>
+    /// <param name="ct">Token de cancelamento.</param>
+    /// <returns>Lista de leituras encontradas.</returns>
+    /// <response code="200">Retorna a lista de leituras.</response>
+    /// <response code="400">Parâmetros inválidos (datas ou ID).</response>
     [HttpGet]
     [ProducesResponseType(typeof(IReadOnlyList<LeituraSensorResponse>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IReadOnlyList<LeituraSensorResponse>>> ConsultarAsync(

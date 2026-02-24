@@ -205,6 +205,125 @@ docs/            # Documentação técnica
 
 ---
 
+## 📖 Referência de API
+
+Abaixo, a documentação simplificada dos principais endpoints para integração. Para detalhes completos dos esquemas e modelos de dados, consulte o Swagger de cada serviço (disponível via Ingress ou Port Forward).
+
+### 1. API de Usuários (AgroSolutions.Usuarios)
+**Responsabilidade:** Gerenciar o ciclo de vida dos usuários (produtores rurais, administradores) e prover autenticação segura via tokens JWT para acesso aos demais serviços.
+
+| Método | Endpoint | Descrição |
+| :--- | :--- | :--- |
+| **POST** | `/api/usuarios/registrar` | Cadastra um novo usuário no sistema. |
+| **POST** | `/api/usuarios/login` | Autentica o usuário e retorna o token JWT (Bearer). |
+| **GET** | `/api/usuarios` | Lista todos os usuários (Requer Auth). |
+| **DELETE** | `/api/usuarios/{id}` | Remove um usuário pelo ID (Requer Auth). |
+
+**Exemplo de Payload (Login):**
+```json
+{
+  "email": "produtor@agro.com",
+  "password": "senha_segura"
+}
+```
+
+**Teste Rápido (cURL):**
+```bash
+curl -X POST http://localhost/api/usuarios/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"produtor@agro.com", "password":"senha_segura"}'
+```
+
+---
+
+### 2. API de Propriedades (AgroSolutions.Propriedades)
+**Responsabilidade:** Permitir que produtores cadastrem suas fazendas e subdivisões (talhões), criando a estrutura hierárquica necessária para associar os dispositivos IoT.
+
+| Método | Endpoint | Descrição |
+| :--- | :--- | :--- |
+| **GET** | `/api/v1/Propriedades` | Lista propriedades do usuário logado. |
+| **POST** | `/api/v1/Propriedades` | Cria uma nova propriedade. |
+| **GET** | `/api/v1/Propriedades/{id}/talhoes` | Lista talhões de uma propriedade. |
+| **POST** | `/api/v1/Propriedades/{id}/talhoes` | Cria um talhão dentro de uma propriedade. |
+| **GET** | `/api/v1/Propriedades/talhoes/{id}` | Detalhes de um talhão específico. |
+
+**Exemplo de Payload (Criar Propriedade):**
+```json
+{
+  "nome": "Fazenda Esperança",
+  "localizacao": "Mato Grosso"
+}
+```
+
+**Teste Rápido (cURL):**
+```bash
+curl -X GET http://localhost/api/v1/Propriedades \
+  -H "Authorization: Bearer <SEU_TOKEN>"
+```
+
+---
+
+### 3. API de Ingestão (AgroSolutions.Ingestao)
+**Responsabilidade:** Receber dados brutos (telemetria) dos sensores IoT instalados nos talhões, realizar validações de integridade e segurança (propriedade do talhão) e publicar os eventos para processamento assíncrono.
+
+| Método | Endpoint | Descrição |
+| :--- | :--- | :--- |
+| **POST** | `/api/v1/leituras-sensores` | Recebe uma leitura de sensor IoT. |
+| **GET** | `/api/v1/leituras-sensores` | Consulta histórico de leituras (filtros por talhão/data). |
+
+**Exemplo de Payload (Nova Leitura):**
+```json
+{
+  "idPropriedade": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "idTalhao": "9f2d1e56-2244-4221-a0c3-123456789abc",
+  "origem": "Sensor-01",
+  "dataHoraCapturaUtc": "2024-02-23T12:00:00Z",
+  "metricas": {
+    "umidadeSoloPercentual": 45.5,
+    "temperaturaCelsius": 28.0,
+    "precipitacaoMilimetros": 0
+  }
+}
+```
+
+**Teste Rápido (cURL):**
+```bash
+curl -X POST http://localhost/api/v1/leituras-sensores \
+  -H "Authorization: Bearer <SEU_TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '...'
+```
+
+---
+
+### 4. API de Análise (AgroSolutions.Analise)
+**Responsabilidade:** Processar os dados recebidos, aplicar regras de negócio para gerar alertas (ex: seca extrema, chuva excessiva) e expor endpoints de consulta para dashboards analíticos.
+
+| Método | Endpoint | Descrição |
+| :--- | :--- | :--- |
+| **GET** | `/api/v1/analise/leituras` | Consulta leituras processadas e armazenadas para análise. |
+| **GET** | `/api/v1/analise/alertas` | Consulta alertas gerados pelo motor de regras. |
+
+**Exemplo de Payload (Resposta Alerta):**
+```json
+[
+  {
+    "id": "...",
+    "mensagem": "Alerta Crítico: Umidade abaixo de 20%",
+    "dataHoraGeracao": "2024-02-23T12:05:00Z",
+    "nivelSeveridade": "Critico"
+  }
+]
+```
+
+**Teste Rápido (cURL):**
+```bash
+curl -X GET "http://localhost/api/v1/analise/alertas?idTalhao=<GUID_TALHAO>" \
+  -H "Authorization: Bearer <SEU_TOKEN>"
+```
+
+---
+
 ## 👥 Membros da Equipe – Grupo 21
 
 ### 👨‍💻 Anderson Marzola

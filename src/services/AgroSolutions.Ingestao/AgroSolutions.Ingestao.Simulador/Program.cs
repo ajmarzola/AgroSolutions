@@ -90,8 +90,21 @@ bool IsTokenValid(string? token)
     }
 }
 
-for (var i = 0; i < options.TotalPorTalhao; i++)
+// Loop principal de simulação temporal
+Console.WriteLine("Pressione ENTER para iniciar a simulação ('Start')...");
+Console.ReadLine();
+
+var startTime = DateTime.UtcNow;
+var duration = TimeSpan.FromMinutes(10);
+var interval = TimeSpan.FromMinutes(1);
+var endTime = startTime.Add(duration);
+var minute = 0;
+
+Console.WriteLine($"Iniciando simulação de {duration.TotalMinutes} minutos com intervalo de {interval.TotalMinutes} minuto(s)...");
+
+while (DateTime.UtcNow < endTime)
 {
+    minute++;
     // Auth Logic: Renovação de Token
     if (!IsTokenValid(currentToken))
     {
@@ -120,8 +133,10 @@ for (var i = 0; i < options.TotalPorTalhao; i++)
         }
     }
 
+    int generatedCount = 0;
     foreach (var idTalhao in options.Talhoes)
     {
+        // ... (resto do loop, mantendo a lógica de envio)
         // Simula multi-propriedade para variar métricas de negócio
         var currentOptions = options;
         // Se a variável de ambiente MULTI_PROPRIEDADE=true, varia IDs
@@ -147,24 +162,30 @@ for (var i = 0; i < options.TotalPorTalhao; i++)
 
             if (!resp.IsSuccessStatusCode)
             {
-                Console.WriteLine($"[ERRO] Talhao={idTalhao} Status={(int)resp.StatusCode} {resp.ReasonPhrase} Body={body}");
+                Console.WriteLine($"[ERRO] Talhão={idTalhao} Status={(int)resp.StatusCode} {resp.ReasonPhrase} Body={body}");
             }
             else
             {
-                Console.WriteLine($"[OK] Talhao={idTalhao} CapturaUtc={leitura.DataHoraCapturaUtc:o} Umidade={leitura.Metricas.UmidadeSoloPercentual}% Temp={leitura.Metricas.TemperaturaCelsius}C Chuva={leitura.Metricas.PrecipitacaoMilimetros}mm");
+                Console.WriteLine($"[OK] Talhão={idTalhao} CapturaUtc={leitura.DataHoraCapturaUtc:o} Umidade={leitura.Metricas.UmidadeSoloPercentual}% Temp={leitura.Metricas.TemperaturaCelsius}C Chuva={leitura.Metricas.PrecipitacaoMilimetros}mm");
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[EXCECAO] Talhao={idTalhao} {ex.GetType().Name}: {ex.Message}");
+            Console.WriteLine($"[EXCEÇÃO] Talhão={idTalhao} {ex.GetType().Name}: {ex.Message}");
         }
+        
+        generatedCount++;
     }
 
-    if (i < options.TotalPorTalhao - 1)
+    Console.WriteLine($"Minuto {minute}: Dados gerados para {generatedCount} talhões.");
+
+    // Aguarda até o próximo minuto
+    var nextRunTime = startTime.Add(TimeSpan.FromMinutes(minute));
+    var delay = nextRunTime - DateTime.UtcNow;
+    if (delay > TimeSpan.Zero && nextRunTime < endTime)
     {
-        await Task.Delay(TimeSpan.FromSeconds(options.IntervaloSeconds));
+        await Task.Delay(delay);
     }
 }
 
-Console.WriteLine();
-Console.WriteLine("Finalizado.");
+Console.WriteLine("Simulação finalizada com sucesso.");

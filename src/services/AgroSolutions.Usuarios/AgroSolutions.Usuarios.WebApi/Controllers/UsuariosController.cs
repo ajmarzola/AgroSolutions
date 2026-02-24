@@ -12,6 +12,9 @@ using BCrypt.Net;
 
 namespace AgroSolutions.Usuarios.WebApi.Controllers
 {
+    /// <summary>
+    /// Controladora responsável pelo gerenciamento de usuários e autenticação.
+    /// </summary>
     [ApiController]
     [Route("api/usuarios")]
     public class UsuariosController : ControllerBase
@@ -25,6 +28,13 @@ namespace AgroSolutions.Usuarios.WebApi.Controllers
             _config = config;
         }
 
+        /// <summary>
+        /// Realiza o login de um usuário e retorna um token JWT.
+        /// </summary>
+        /// <param name="login">Objeto contendo as credenciais de acesso (email e senha).</param>
+        /// <returns>Retorna um token JWT válido em caso de sucesso.</returns>
+        /// <response code="200">Login realizado com sucesso. Retorna o token.</response>
+        /// <response code="401">Credenciais inválidas.</response>
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequestDto login)
         {
@@ -61,6 +71,13 @@ namespace AgroSolutions.Usuarios.WebApi.Controllers
             return Ok(new { Token = tokenHandler.WriteToken(token) });
         }
 
+        /// <summary>
+        /// Registra um novo usuário no sistema.
+        /// </summary>
+        /// <param name="usuarioDto">Dados do novo usuário (email, senha e tipo).</param>
+        /// <returns>Mensagem de sucesso.</returns>
+        /// <response code="200">Usuário criado com sucesso.</response>
+        /// <response code="400">E-mail já cadastrado ou dados inválidos.</response>
         [HttpPost("registrar")]
         public async Task<IActionResult> Registrar([FromBody] UsuarioRegistroDto usuarioDto)
         {
@@ -81,6 +98,12 @@ namespace AgroSolutions.Usuarios.WebApi.Controllers
             return Ok(new { mensagem = "Usuário criado com sucesso!" });
         }
 
+        /// <summary>
+        /// Lista todos os usuários cadastrados.
+        /// </summary>
+        /// <returns>Lista de usuários com ID, Email e Tipo.</returns>
+        /// <response code="200">Retorna a lista de usuários.</response>
+        /// <response code="401">Não autorizado (requer autenticação).</response>
         [Authorize]
         [HttpGet]
         public async Task<IActionResult> ListarTodos()
@@ -98,6 +121,13 @@ namespace AgroSolutions.Usuarios.WebApi.Controllers
             return Ok(usuarios);
         }
 
+        /// <summary>
+        /// Remove um usuário pelo ID.
+        /// </summary>
+        /// <param name="id">ID do usuário a ser removido.</param>
+        /// <response code="204">Usuário removido com sucesso.</response>
+        /// <response code="404">Usuário não encontrado.</response>
+        /// <response code="401">Não autorizado.</response>
         [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Remover(int id)

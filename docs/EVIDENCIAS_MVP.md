@@ -9,7 +9,7 @@ A solução foi construída seguindo arquitetura de microsserviços, orquestrada
 - **AgroSolutions.Ingestao**: Recebimento de dados via API e publicação em fila (RabbitMQ).
 - **AgroSolutions.Analise**: Processamento de regras de alertas (Consumer) e persistência.
 - **AgroSolutions.Simulador**: Gerador de carga que autentica e envia leituras.
-- **Infraestrutura**: SQL Server, RabbitMQ, Obervabilidade (OpenTelemetry/Prometheus/Grafana* - *se habilitado*).
+- **Infraestrutura**: SQL Server, RabbitMQ, Observabilidade (OpenTelemetry/Prometheus/Grafana* - *se habilitado*).
 
 ## 2. Roteiro de Teste (Caminho Feliz)
 

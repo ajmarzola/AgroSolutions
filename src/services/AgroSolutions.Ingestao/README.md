@@ -66,6 +66,29 @@ Query params:
 ---
 
 
+## Modo Demo (Simulação Temporal)
+
+O simulador foi atualizado para suportar um modo de execução interativo para demonstrações.
+
+### Comportamento
+1. Ao iniciar, o simulador aguarda o pressionamento da tecla **ENTER** (comando "Start").
+2. Após o início, executa por **10 minutos**, gerando dados a cada **1 minuto**.
+3. Gera dados para **todos os talhões** configurados na variável `TALHOES`.
+4. Os dados gerados incluem novas métricas simuladas:
+   - **Umidade do Solo**: 15% a 40%
+   - **Temperatura**: 18°C a 35°C
+   - **Nível de Nitrogênio**: 20 a 50 mg/kg (apenas log/meta)
+   - **Status do Sensor**: 95% Ativo / 5% Falha
+
+### Execução
+
+```bash
+dotnet run --project src/services/AgroSolutions.Ingestao/AgroSolutions.Ingestao.Simulador/AgroSolutions.Ingestao.Simulador.csproj
+# Pressione ENTER quando solicitado
+```
+
+---
+
 ## Testes (simulador de dados + CronJob)
 
 Para facilitar os testes do fluxo **Ingestão → SQL Server → Grafana** (e também a publicação no RabbitMQ), disponibilizamos um **Console App** que gera leituras aleatórias e envia para a API.

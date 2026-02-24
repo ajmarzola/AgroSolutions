@@ -9,6 +9,7 @@ resources:
 - ../../base/usuarios
 - ../../base/observability
 - ../../base/database
+- ../../rabbitmq
 - logging/loki.yaml
 - logging/promtail.yaml
 - monitoring/servicemonitors.yaml
