@@ -116,9 +116,6 @@ if (builder.Configuration.GetValue("OpenTelemetry:Enabled", false))
 
 var app = builder.Build();
 
-// Executa Migrations (DbUp)
-app.MigrateDatabase();
-
 // Configure the HTTP request pipeline.
 app.UseSwagger();
 app.UseSwaggerUI();

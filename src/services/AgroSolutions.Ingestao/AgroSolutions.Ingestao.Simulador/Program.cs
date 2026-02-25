@@ -89,45 +89,6 @@ Console.WriteLine();
 
 var rnd = new Random(options.Seed);
 
-// Helper para validar JWT (expiração)
-bool IsTokenValid(string? token)
-{
-    if (string.IsNullOrWhiteSpace(token))
-    {
-        return false;
-    }
-
-    try
-    {
-        var parts = token.Split('.');
-        if (parts.Length != 3)
-        {
-            return false;
-        }
-
-        var payload = parts[1].Replace('-', '+').Replace('_', '/'); 
-        switch (payload.Length % 4) 
-        {
-            case 2: payload += "=="; break;
-            case 3: payload += "="; break;
-        }
-        var jsonBytes = Convert.FromBase64String(payload);
-        using var doc = JsonDocument.Parse(jsonBytes);
-        if (doc.RootElement.TryGetProperty("exp", out var expElem))
-        {
-            var expUnix = expElem.GetInt64();
-            var expDate = DateTimeOffset.FromUnixTimeSeconds(expUnix);
-            // Considera expirado se faltar menos de 30s
-            return expDate > DateTimeOffset.UtcNow.AddSeconds(30);
-        }
-        return true; 
-    }
-    catch 
-    {
-        return false;
-    }
-}
-
 async Task<List<(Guid Id, Guid PropriedadeId)>> FetchTalhoesDinamicamente()
 {
     var list = new List<(Guid, Guid)>();
