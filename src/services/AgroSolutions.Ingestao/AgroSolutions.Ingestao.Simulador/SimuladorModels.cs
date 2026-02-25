@@ -20,14 +20,19 @@ internal sealed record SimuladorOptions(
     decimal TemperaturaMin,
     decimal TemperaturaMax,
     decimal PrecipitacaoMin,
-    decimal PrecipitacaoMax
+    decimal PrecipitacaoMax,
+    string? SimulationConfigPath,
+    string PropriedadesBaseUrl,
+    string? PropriedadesConnectionString
 )
 {
     public static SimuladorOptions FromArgs(string[] args)
     {
         // Defaults (podem ser sobrescritos por env vars e/ou args)
         var baseUrl = Environment.GetEnvironmentVariable("INGESTAO_BASE_URL") ?? BuildDefaultBaseUrl();
-        var talhoesCsv = Environment.GetEnvironmentVariable("TALHOES") ?? "1";
+        var propriedadesBaseUrl = Environment.GetEnvironmentVariable("PROPRIEDADES_BASE_URL") ?? "http://localhost:5146";
+        var propriedadesConnString = Environment.GetEnvironmentVariable("PROPRIEDADES_CONNECTION_STRING") ?? "Server=localhost,1433;Database=AgroSolutionsPropriedades;User Id=sa;Password=Fi@p2026;TrustServerCertificate=True;";
+        var talhoesCsv = Environment.GetEnvironmentVariable("TALHOES") ?? "";
         var idPropriedadeRaw = Environment.GetEnvironmentVariable("ID_PROPRIEDADE") ?? "00000000-0000-0000-0000-000000000001";
         var intervalo = TryInt(Environment.GetEnvironmentVariable("INTERVALO_SECONDS"), 5);
         var total = TryInt(Environment.GetEnvironmentVariable("TOTAL_POR_TALHAO"), 12);
@@ -36,8 +41,9 @@ internal sealed record SimuladorOptions(
         var token = Environment.GetEnvironmentVariable("BEARER_TOKEN");
         var userEmail = Environment.GetEnvironmentVariable("SIM_USER_EMAIL");
         var userPassword = Environment.GetEnvironmentVariable("SIM_USER_PASSWORD");
-        var authBaseUrl = Environment.GetEnvironmentVariable("AUTH_BASE_URL") ?? "http://usuarios-service";
+        var authBaseUrl = Environment.GetEnvironmentVariable("AUTH_BASE_URL") ?? "http://localhost:5079";
         var seed = TryInt(Environment.GetEnvironmentVariable("SEED"), Environment.TickCount);
+        var simConfigPath = Environment.GetEnvironmentVariable("SIMULATION_CONFIG_PATH");
 
         var umidadeMin = TryDec(Environment.GetEnvironmentVariable("UMIDADE_MIN"), 25m);
         var umidadeMax = TryDec(Environment.GetEnvironmentVariable("UMIDADE_MAX"), 75m);
@@ -66,6 +72,7 @@ internal sealed record SimuladorOptions(
             switch (key)
             {
                 case "baseurl": baseUrl = value; break;
+                case "propriedadesurl": propriedadesBaseUrl = value; break;
                 case "talhoes": talhoesCsv = value; break;
                 case "propriedade": idPropriedadeRaw = value; break;
                 case "idpropriedade": idPropriedadeRaw = value; break;
@@ -78,6 +85,7 @@ internal sealed record SimuladorOptions(
                 case "dispositivo": idDispositivo = value; break;
                 case "token": token = value; break;
                 case "seed": seed = TryInt(value, seed); break;
+                case "config": simConfigPath = value; break;
 
                 case "umidadeMin": umidadeMin = TryDec(value, umidadeMin); break;
                 case "umidadeMax": umidadeMax = TryDec(value, umidadeMax); break;
@@ -98,10 +106,8 @@ internal sealed record SimuladorOptions(
             .Distinct()
             .ToList();
 
-        if (talhoes.Count == 0)
-        {
-            talhoes.Add(Guid.Parse("00000000-0000-0000-0000-000000000001"));
-        }
+        // Defaults to empty instead of hardcoded if we want to fetch dynamically
+        // But for backward compat/specific runs maybe we verify count later.
 
         return new SimuladorOptions(
             BaseUrl: baseUrl,
@@ -121,13 +127,16 @@ internal sealed record SimuladorOptions(
             TemperaturaMin: tempMin,
             TemperaturaMax: tempMax,
             PrecipitacaoMin: precMin,
-            PrecipitacaoMax: precMax
+            PrecipitacaoMax: precMax,
+            SimulationConfigPath: simConfigPath,
+            PropriedadesBaseUrl: propriedadesBaseUrl,
+            PropriedadesConnectionString: propriedadesConnString
         );
     }
 
     private static string BuildDefaultBaseUrl()
     {
-        var uri = new UriBuilder(Uri.UriSchemeHttp, "localhost", 8080).Uri;
+        var uri = new UriBuilder(Uri.UriSchemeHttp, "localhost", 5081).Uri;
         return uri.ToString();
     }
 
@@ -243,3 +252,21 @@ internal sealed record MetaDto(
     [property: JsonPropertyName("idDispositivo")] string IdDispositivo,
     [property: JsonPropertyName("correlationId")] string CorrelationId
 );
+
+internal sealed record SimulationUserConfig(
+    string Email,
+    string Password,
+    string? Token,
+    List<SimulationPropertyConfig> Properties
+)
+{
+    public string? Token { get; set; } = Token;
+}
+
+
+internal sealed record SimulationPropertyConfig(
+    Guid Id,
+    string Nome,
+    List<Guid> Talhoes
+);
+

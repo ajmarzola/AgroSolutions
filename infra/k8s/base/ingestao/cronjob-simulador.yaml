@@ -48,7 +48,7 @@ spec:
                 - name: ID_DISPOSITIVO
                   value: "SIM-CRON-001"
                 - name: AUTH_BASE_URL
-                  value: "http://usuarios-service"
+                  value: "http://usuarios"
                 - name: SIM_USER_EMAIL
                   valueFrom:
                     secretKeyRef:

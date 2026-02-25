@@ -51,6 +51,13 @@ spec:
               value: "true"
             - name: INGESTAO_BASE_URL
               value: "http://ingestao"
+            - name: PROPRIEDADES_BASE_URL
+              value: "http://propriedades"
+            - name: PROPRIEDADES_CONNECTION_STRING
+              valueFrom:
+                configMapKeyRef:
+                  name: ingestao-config
+                  key: Propriedades__ConnectionString
             - name: SIM_USER_EMAIL
               value: "admin@agrosolutions.com"
             - name: SIM_USER_PASSWORD

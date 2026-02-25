@@ -74,7 +74,14 @@ Credenciais padrão:
 - Arquivo: `infra/observability/grafana/dashboards/agrosolutions-apis-prometheus.json`
 - Grafana → **Dashboards** → **New** → **Import** → **Upload dashboard JSON file**
 - Selecione o DataSource `Prometheus` e clique em **Import**.
+### Monitoramento de Negócio (Talhões)
 
+O dashboard **Monitoramento de Talhões** (`infra/k8s/base/observability/grafana/dashboards/monitoramento-talhoes.json`) exibe métricas de negócio cruzando informações:
+- **Umidade do Solo**: Dados de telemetria.
+- **Status**: Classificação de risco.
+- **Propriedade e Dono**: Cruzamento de dados entre bancos `AgroSolutionsPropriedades` e `AgroSolutionsUsuarios`.
+
+Este dashboard utiliza o DataSource `SQLServer` e realiza queries cross-database.
 ---
 
 ## 🚀 Cenário B — Ambiente Existente (acesso e validação)

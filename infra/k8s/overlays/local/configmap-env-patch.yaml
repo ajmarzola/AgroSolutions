@@ -24,6 +24,7 @@ data:
   ASPNETCORE_ENVIRONMENT: Development
   ConnectionStrings__DefaultConnection: "Server=sql-service;Database=AgroSolutionsIngestao;User Id=sa;Password=Fi@p2026;TrustServerCertificate=True;"
   SqlServer__ConnectionString: "Server=sql-service;Database=AgroSolutionsIngestao;User Id=sa;Password=Fi@p2026;TrustServerCertificate=True;"
+  Propriedades__ConnectionString: "Server=sql-service;Database=AgroSolutionsPropriedades;User Id=sa;Password=Fi@p2026;TrustServerCertificate=True;"
   Services__PropriedadesUrl: "http://propriedades"
   SqlServer__UseInMemory: "false"
   RabbitMq__Enabled: "true"

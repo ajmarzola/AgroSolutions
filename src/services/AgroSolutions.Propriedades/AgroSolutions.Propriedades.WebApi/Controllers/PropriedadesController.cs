@@ -147,8 +147,18 @@ public class PropriedadesController : ControllerBase
     }
 
     /// <summary>
-    /// Obtém detalhes de um talhão específico.
+    /// Retorna todos os talhões cadastrados para fins de simulação.
     /// </summary>
+    [HttpGet("admin/simulacao/talhoes")]
+    [AllowAnonymous]
+    public async Task<ActionResult<IEnumerable<TalhaoDto>>> GetAllTalhoesForSimulation()
+    {
+        var talhoes = await _context.Talhoes.ToListAsync();
+        return Ok(talhoes.Select(t => new TalhaoDto(t.Id, t.PropriedadeId, t.Nome, t.Cultura, t.Area)));
+    }
+
+    /// <summary>
+    /// Obtém detalhes de um talhão específico. </summary>
     /// <param name="id">ID do talhão.</param>
     /// <returns>Detalhes do talhão.</returns>
     /// <response code="200">Retorna os detalhes do talhão.</response>

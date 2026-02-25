@@ -174,6 +174,7 @@ kubectl logs -n agrosolutions-local -l app=ingestao-simulador -f
 
 Ajustes rápidos (para demo):
 - Edite o `deployment-simulador.yaml` ou use `kubectl set env` para alterar variáveis como `TALHOES`, `TOTAL_POR_TALHAO` e `INTERVALO_SECONDS` se desejar controlar o volume de dados.
+- **Novidade**: Se a variável `TALHOES` não for informada (ou vazia), o simulador buscará automaticamente todos os talhões cadastrados no serviço **AgroSolutions.Propriedades** (via endpoint `/api/v1/Propriedades/admin/simulacao/talhoes`) e gerará dados para eles.
 
 ## Observabilidade
 

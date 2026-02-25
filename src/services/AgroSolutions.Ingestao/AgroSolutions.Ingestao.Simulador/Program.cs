@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using AgroSolutions.Ingestao.Simulador;
+using Microsoft.Data.SqlClient;
 using OpenTelemetry;
 using OpenTelemetry.Trace;
 using OpenTelemetry.Resources;
@@ -27,6 +28,21 @@ var jsonOptions = new JsonSerializerOptions
     DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
 };
 
+List<SimulationUserConfig> simulationUsers = new();
+if (!string.IsNullOrWhiteSpace(options.SimulationConfigPath) && File.Exists(options.SimulationConfigPath))
+{
+    try
+    {
+        var configJson = File.ReadAllText(options.SimulationConfigPath);
+        simulationUsers = JsonSerializer.Deserialize<List<SimulationUserConfig>>(configJson, jsonOptions) ?? new();
+        Console.WriteLine($"[SETUP] Carregada configuracao de simulacao para {simulationUsers.Count} usuarios do arquivo {options.SimulationConfigPath}");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[SETUP-ERRO] Falha ao ler arquivo de configuracao: {ex.Message}");
+    }
+}
+
 using var http = new HttpClient
 {
     BaseAddress = new UriBuilder(options.BaseUrl).Uri
@@ -41,11 +57,32 @@ if (!string.IsNullOrWhiteSpace(options.BearerToken))
 var authClient = new AuthClient(options.AuthBaseUrl);
 var currentToken = options.BearerToken;
 
+// Propriedades Client
+using var propHttp = new HttpClient
+{
+    BaseAddress = new Uri(options.PropriedadesBaseUrl)
+};
+
 Console.WriteLine("AgroSolutions.Ingestao.Simulador");
 Console.WriteLine($"BaseUrl: {http.BaseAddress}");
 Console.WriteLine($"AuthUrl: {options.AuthBaseUrl}");
-Console.WriteLine($"Propriedade: {options.IdPropriedade}");
-Console.WriteLine($"Talhoes: {string.Join(", ", options.Talhoes)}");
+Console.WriteLine($"PropriedadesUrl: {options.PropriedadesBaseUrl}");
+if (simulationUsers.Count == 0)
+{
+    if (options.Talhoes.Count > 0)
+    {
+        Console.WriteLine($"Propriedade: {options.IdPropriedade}");
+        Console.WriteLine($"Talhoes: {string.Join(", ", options.Talhoes)}");
+    }
+    else
+    {
+        Console.WriteLine("Modo Dinâmico: Buscando talhões da API de Propriedades a cada ciclo.");
+    }
+}
+else
+{
+    Console.WriteLine($"Modo Simulação Massiva: {simulationUsers.Sum(u => u.Properties.Count)} propriedades carregadas.");
+}
 Console.WriteLine($"Intervalo: {options.IntervaloSeconds}s | TotalPorTalhao: {options.TotalPorTalhao}");
 Console.WriteLine($"Fonte: {options.Fonte} | Dispositivo: {options.IdDispositivo}");
 Console.WriteLine();
@@ -91,6 +128,92 @@ bool IsTokenValid(string? token)
     }
 }
 
+async Task<List<(Guid Id, Guid PropriedadeId)>> FetchTalhoesDinamicamente()
+{
+    var list = new List<(Guid, Guid)>();
+
+    if (!string.IsNullOrWhiteSpace(options.PropriedadesConnectionString))
+    {
+         // Conexão via ADO.NET
+         try
+         {
+             using var conn = new SqlConnection(options.PropriedadesConnectionString);
+             await conn.OpenAsync();
+             using var cmd = new SqlCommand("SELECT Id, PropriedadeId FROM Talhoes", conn);
+             using var reader = await cmd.ExecuteReaderAsync();
+             while (await reader.ReadAsync())
+             {
+                 list.Add((reader.GetGuid(0), reader.GetGuid(1)));
+             }
+             // Console.WriteLine($"[DB-PROP] Carregados {list.Count} talhões via SQL.");
+             return list;
+         }
+         catch (Exception ex)
+         {
+             Console.WriteLine($"[ERRO-DB-PROP] Falha ao buscar talhões no banco: {options.PropriedadesConnectionString} - {ex.Message}");
+             return list;
+         }
+    }
+
+    try 
+    {
+        var resp = await propHttp.GetAsync("api/v1/Propriedades/admin/simulacao/talhoes");
+        if (resp.IsSuccessStatusCode)
+        {
+            var content = await resp.Content.ReadAsStringAsync();
+            using var doc = JsonDocument.Parse(content);
+            // var list = new List<(Guid, Guid)>(); // Conflict with outer variable
+            foreach (var item in doc.RootElement.EnumerateArray())
+            {
+                 if (item.TryGetProperty("id", out var idElem) && item.TryGetProperty("propriedadeId", out var propElem))
+                 {
+                     list.Add((idElem.GetGuid(), propElem.GetGuid()));
+                 }
+            }
+            return list;
+        }
+        else
+        {
+            Console.WriteLine($"[ERRO-PROP] Falha ao buscar talhões: {resp.StatusCode}");
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[ERRO-PROP] Exceção ao buscar talhões: {ex.Message}");
+    }
+    return list;
+}
+
+async Task SendDataForTalhao(Guid idTalhao, SimuladorOptions currentOptions, int totalPorTalhao)
+{
+    for (int i = 0; i < totalPorTalhao; i++)
+    {
+         var leitura = LeituraSensorDto.CriarAleatoria(idTalhao, currentOptions, rnd);
+         var content = new StringContent(JsonSerializer.Serialize(leitura, jsonOptions), Encoding.UTF8, "application/json");
+
+         try
+         {
+             var resp = await http.PostAsync("api/v1/leituras-sensores", content);
+             
+             if (!resp.IsSuccessStatusCode)
+             {
+                 var body = await resp.Content.ReadAsStringAsync();
+                 Console.WriteLine($"[ERRO] Talhão={idTalhao} Status={(int)resp.StatusCode} {resp.ReasonPhrase} Body={body}");
+             }
+             else
+             {
+                 // Log menos verboso
+                 if (totalPorTalhao <= 1 || i % 10 == 0)
+                     Console.WriteLine($"[OK] Talhão={idTalhao} ({i+1}/{totalPorTalhao}) CapturaUtc={leitura.DataHoraCapturaUtc:o} Umidade={leitura.Metricas.UmidadeSoloPercentual}%");
+             }
+         }
+         catch (Exception ex)
+         {
+             Console.WriteLine($"[EXCEÇÃO] Talhão={idTalhao} {ex.GetType().Name}: {ex.Message}");
+         }
+    }
+}
+
 // Loop principal de simulação temporal
 Console.WriteLine("Pressione ENTER para iniciar a simulação ('Start')...");
 // Console.ReadLine(); // Removido para execução automática em container
@@ -110,86 +233,91 @@ try
 {
     while (!cts.Token.IsCancellationRequested)
     {
-    // Auth Logic: Renovação de Token
-    if (!IsTokenValid(currentToken))
-    {
-        if (!string.IsNullOrWhiteSpace(options.UserEmail) && !string.IsNullOrWhiteSpace(options.UserPassword))
+        if (simulationUsers.Count > 0)
         {
-            Console.WriteLine("[AUTH] Token inexistente ou expirado. Tentando login...");
-            var newToken = await authClient.LoginAsync(options.UserEmail, options.UserPassword);
-            if (!string.IsNullOrWhiteSpace(newToken))
+            // Modo Massivo
+            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Enviando lote massivo para {simulationUsers.Count} usuarios...");
+            foreach (var user in simulationUsers)
             {
-                currentToken = newToken;
-                http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", currentToken);
-                Console.WriteLine("[AUTH] Token renovado com sucesso.");
-            }
-            else
-            {
-                Console.WriteLine("[AUTH] Falha ao obter token. As requisições podem falhar (401).");
+                // Seta token no header
+                http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", user.Token);
+
+                foreach (var prop in user.Properties)
+                {
+                     // Configurar opções para esta propriedade
+                     // Precisamos de um SimulatedOptions com o ID correto
+                     var propOptions = options with { IdPropriedade = prop.Id };
+                     
+                     foreach (var talhaoId in prop.Talhoes)
+                     {
+                         await SendDataForTalhao(talhaoId, propOptions, options.TotalPorTalhao);
+                     }
+                }
             }
         }
         else
         {
-            // Apenas loga aviso se não tiver credenciais para renovar
-             if (string.IsNullOrWhiteSpace(currentToken))
+            // Define quais talhões processar
+            var talhoesToProcess = new List<(Guid Id, Guid PropriedadeId)>();
+
+            if (options.Talhoes.Count > 0)
             {
-                Console.WriteLine("[AUTH] Sem token e sem credenciais configuradas.");
+                // Modo fixo via args/env
+                foreach(var t in options.Talhoes) 
+                {
+                    talhoesToProcess.Add((t, options.IdPropriedade));
+                }
+            }
+            else
+            {
+                // Modo dinâmico: busca da API
+                var fetched = await FetchTalhoesDinamicamente();
+                if (fetched.Count > 0)
+                {
+                    talhoesToProcess.AddRange(fetched);
+                }
+                else 
+                {
+                     // Fallback se falhar ou vazio para evitar loop vazio
+                     // Console.WriteLine("[WARN] Nenhum talhão encontrado na API. Tentando novamente no próximo ciclo.");
+                }
+            }
+
+            if (talhoesToProcess.Count > 0)
+            {
+                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Enviando lote de {talhoesToProcess.Count * options.TotalPorTalhao} mensagens para a fila...");
+
+                foreach (var item in talhoesToProcess)
+                {
+                    var idTalhao = item.Id;
+                    var propId = item.PropriedadeId;
+
+                    var currentOptions = options with { IdPropriedade = propId };
+                    
+                    // Se a variável de ambiente MULTI_PROPRIEDADE=true foi removida/substituída pelo modo dinâmico real. 
+                    // Mas mantemos compatibilidade se o usuário passou args explícitos?
+                    // Se args explícitos, usamos IdPropriedade fixo do options.
+                    // Se dinâmico, usamos o propId que veio da api.
+                    // O código original tinha lógica de randomizar propriedade se MULTI_PROPRIEDADE=true.
+                    // Vamos manter se o usuário estiver usando talhões fixos?
+                    // Se estamos no modo fixo (talhoesToProcess veio de options.Talhoes), propId é options.IdPropriedade.
+                    
+                    if (options.Talhoes.Count > 0 && Environment.GetEnvironmentVariable("MULTI_PROPRIEDADE") == "true")
+                    {
+                         if (rnd.NextDouble() > 0.5) 
+                        {
+                            var suffix = rnd.Next(2, 6); 
+                            var randomProp = Guid.Parse($"00000000-0000-0000-0000-00000000000{suffix}");
+                            currentOptions = options with { IdPropriedade = randomProp };
+                        }
+                    }
+                    
+                    await SendDataForTalhao(idTalhao, currentOptions, options.TotalPorTalhao);
+                }
             }
         }
-    }
 
-    int generatedCount = 0;
-    Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Enviando lote de {options.Talhoes.Count * options.TotalPorTalhao} mensagens para a fila...");
-
-    foreach (var idTalhao in options.Talhoes)
-    {
-        // Envia lote configurado por talhão
-        for (int i = 0; i < options.TotalPorTalhao; i++)
-        {
-            // Simula multi-propriedade para variar métricas de negócio
-            var currentOptions = options;
-            // Se a variável de ambiente MULTI_PROPRIEDADE=true, varia IDs
-            if (Environment.GetEnvironmentVariable("MULTI_PROPRIEDADE") == "true")
-            {
-                // 50% de chance de mudar a propriedade para gerar volume distribuído
-                if (rnd.NextDouble() > 0.5) 
-                {
-                    var suffix = rnd.Next(2, 6); // ex: ...0002 a ...0005
-                    var randomProp = Guid.Parse($"00000000-0000-0000-0000-00000000000{suffix}");
-                    currentOptions = options with { IdPropriedade = randomProp };
-                }
-            }
-
-            var leitura = LeituraSensorDto.CriarAleatoria(idTalhao, currentOptions, rnd);
-
-            var content = new StringContent(JsonSerializer.Serialize(leitura, jsonOptions), Encoding.UTF8, "application/json");
-
-            try
-            {
-                var resp = await http.PostAsync("api/v1/leituras-sensores", content);
-                var body = await resp.Content.ReadAsStringAsync();
-
-                if (!resp.IsSuccessStatusCode)
-                {
-                    Console.WriteLine($"[ERRO] Talhão={idTalhao} Status={(int)resp.StatusCode} {resp.ReasonPhrase} Body={body}");
-                }
-                else
-                {
-                    // Log menos verboso para batches grandes, logar apenas a cada 10 envios ou se for o primeiro
-                    if (options.TotalPorTalhao <= 1 || i % 10 == 0)
-                        Console.WriteLine($"[OK] Talhão={idTalhao} ({i+1}/{options.TotalPorTalhao}) CapturaUtc={leitura.DataHoraCapturaUtc:o} Umidade={leitura.Metricas.UmidadeSoloPercentual}% Temp={leitura.Metricas.TemperaturaCelsius}C");
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[EXCEÇÃO] Talhão={idTalhao} {ex.GetType().Name}: {ex.Message}");
-            }
-            
-            generatedCount++;
-        }
-    }
-
-    await Task.Delay(interval, cts.Token);
+        await Task.Delay(interval, cts.Token);
     }
 }
 catch (OperationCanceledException)

@@ -58,7 +58,7 @@
           },
           "editorMode": "code",
           "format": "table",
-          "rawSql": "SELECT \r\n  t.IdTalhao,\r\n  t.UmidadeSoloPercentual as UltimaUmidade,\r\n  CASE \r\n    WHEN t.UmidadeSoloPercentual < 30 THEN 'Risco' \r\n    ELSE 'OK' \r\n  END as Status\r\nFROM (\r\n  SELECT \r\n    IdTalhao, \r\n    UmidadeSoloPercentual, \r\n    ROW_NUMBER() OVER (PARTITION BY IdTalhao ORDER BY DataHoraCapturaUtc DESC) as rn \r\n  FROM Leitura\r\n) t \r\nWHERE t.rn = 1",
+          "rawSql": "SELECT \r\n  prop.Nome as [Propriedade],\r\n  u.Email as [Dono],\r\n  tal.Nome as [Talhao],\r\n  tal.Cultura,\r\n  t.IdTalhao,\r\n  t.UmidadeSoloPercentual as [Ultima Umidade],\r\n  CASE \r\n    WHEN t.UmidadeSoloPercentual < 30 THEN 'Risco' \r\n    ELSE 'OK' \r\n  END as Status\r\nFROM (\r\n  SELECT \r\n    IdTalhao, \r\n    UmidadeSoloPercentual, \r\n    ROW_NUMBER() OVER (PARTITION BY IdTalhao ORDER BY DataHoraCapturaUtc DESC) as rn \r\n  FROM Leitura\r\n) t \r\nJOIN [AgroSolutionsPropriedades].[dbo].[Talhoes] tal ON t.IdTalhao = tal.Id\r\nJOIN [AgroSolutionsPropriedades].[dbo].[Propriedades] prop ON tal.PropriedadeId = prop.Id\r\nJOIN [AgroSolutionsUsuarios].[dbo].[Usuarios] u ON CAST(u.Id AS NVARCHAR(50)) = prop.OwnerUserId\r\nWHERE t.rn = 1",
           "refId": "A"
         }
       ],

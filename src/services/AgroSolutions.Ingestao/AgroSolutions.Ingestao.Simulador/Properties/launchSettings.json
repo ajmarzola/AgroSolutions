@@ -1,0 +1,15 @@
+{
+  "profiles": {
+    "AgroSolutions.Ingestao.Simulador": {
+      "commandName": "Project",
+      "commandLineArgs": "",
+      "environmentVariables": {
+        "PROPRIEDADES_CONNECTION_STRING": "Server=tcp:agrosolutions.database.windows.net;Database=Propriedades;User Id=usr_agro;Password=Fi@p2026;TrustServerCertificate=True;",
+        "INGESTAO_BASE_URL": "http://localhost:5081",
+        "AUTH_BASE_URL": "http://localhost:5079",
+        "PROPRIEDADES_BASE_URL": "http://localhost:5146",
+        "OpenTelemetry_Enabled": "false"
+      }
+    }
+  }
+}
