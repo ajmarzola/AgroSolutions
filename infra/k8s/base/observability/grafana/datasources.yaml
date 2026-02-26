@@ -8,13 +8,14 @@ datasources:
 - name: SQLServer
   type: mssql
   uid: mssql-analise
-  url: sql-service
-  user: sa
+  url: agrosolutions.database.windows.net
+  user: usr_agro
   secureJsonData:
-    password: ${MSSQL_SA_PASSWORD}
+    password: Fi@p2026
   jsonData:
-    database: AgroSolutionsAnalise
-    encrypt: disable
+    database: Analise
+    encrypt: "true"
+    tlsSkipVerify: true
 - name: Jaeger
   type: jaeger
   uid: jaeger

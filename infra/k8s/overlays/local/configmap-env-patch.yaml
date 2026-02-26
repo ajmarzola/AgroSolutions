@@ -4,8 +4,7 @@ metadata:
   name: analise-config
 data:
   ASPNETCORE_ENVIRONMENT: Development
-  ConnectionStrings__DefaultConnection: "Server=sql-service;Database=AgroSolutionsAnalise;User Id=sa;Password=Fi@p2026;TrustServerCertificate=True;"
-  SqlServer__ConnectionString: "Server=sql-service;Database=AgroSolutionsAnalise;User Id=sa;Password=Fi@p2026;TrustServerCertificate=True;"
+  SqlServer__ConnectionString: "Server=agrosolutions.database.windows.net;Database=Analise;User Id=usr_agro;Password=Fi@p2026;TrustServerCertificate=True;"
   OpenTelemetry__Enabled: "true"
   OpenTelemetry__Endpoint: "http://otel-collector:4317"
   Jwt__Key: "segredo_super_secreto_para_desenvolvimento_local"
@@ -22,10 +21,9 @@ metadata:
   name: ingestao-config
 data:
   ASPNETCORE_ENVIRONMENT: Development
-  ConnectionStrings__DefaultConnection: "Server=sql-service;Database=AgroSolutionsIngestao;User Id=sa;Password=Fi@p2026;TrustServerCertificate=True;"
-  SqlServer__ConnectionString: "Server=sql-service;Database=AgroSolutionsIngestao;User Id=sa;Password=Fi@p2026;TrustServerCertificate=True;"
-  Propriedades__ConnectionString: "Server=sql-service;Database=AgroSolutionsPropriedades;User Id=sa;Password=Fi@p2026;TrustServerCertificate=True;"
   Services__PropriedadesUrl: "http://propriedades"
+  Propriedades__ConnectionString: "Server=agrosolutions.database.windows.net;Database=Propriedades;User Id=usr_agro;Password=Fi@p2026;TrustServerCertificate=True;"
+  SqlServer__ConnectionString: "Server=agrosolutions.database.windows.net;Database=Ingestao;User Id=usr_agro;Password=Fi@p2026;TrustServerCertificate=True;"
   SqlServer__UseInMemory: "false"
   RabbitMq__Enabled: "true"
   RabbitMq__HostName: "rabbitmq"
@@ -47,7 +45,6 @@ metadata:
   name: propriedades-config
 data:
   ASPNETCORE_ENVIRONMENT: Development
-  ConnectionStrings__DefaultConnection: "Server=sql-service;Database=AgroSolutionsPropriedades;User Id=sa;Password=Fi@p2026;TrustServerCertificate=True;"
   OpenTelemetry__Enabled: "true"
   OpenTelemetry__Endpoint: "http://otel-collector:4317"
   Jwt__Key: "segredo_super_secreto_para_desenvolvimento_local"
@@ -60,7 +57,6 @@ metadata:
   name: usuarios-config
 data:
   ASPNETCORE_ENVIRONMENT: Development
-  ConnectionStrings__DefaultConnection: "Server=sql-service;Database=AgroSolutionsUsuarios;User Id=sa;Password=Fi@p2026;TrustServerCertificate=True;"
   SqlServer__UseInMemory: "false"
   OpenTelemetry__Enabled: "true"
   OpenTelemetry__Endpoint: "http://otel-collector:4317"

@@ -4,7 +4,8 @@
       "commandName": "Project",
       "commandLineArgs": "",
       "environmentVariables": {
-        "PROPRIEDADES_CONNECTION_STRING": "Server=tcp:agrosolutions.database.windows.net;Database=Propriedades;User Id=usr_agro;Password=Fi@p2026;TrustServerCertificate=True;",
+        "PROPRIEDADES_CONNECTION_STRING": "Server=agrosolutions.database.windows.net;Database=Propriedades;User Id=usr_agro;Password=Fi@p2026;TrustServerCertificate=True;",
+        "USUARIOS_CONNECTION_STRING": "Server=agrosolutions.database.windows.net;Database=Usuarios;User Id=usr_agro;Password=Fi@p2026;TrustServerCertificate=True;",
         "INGESTAO_BASE_URL": "http://localhost:30003",
         "AUTH_BASE_URL": "http://localhost:30001",
         "PROPRIEDADES_BASE_URL": "http://localhost:30002",

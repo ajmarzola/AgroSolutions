@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
@@ -48,14 +49,23 @@ using var http = new HttpClient
     BaseAddress = new UriBuilder(options.BaseUrl).Uri
 };
 
+// Auth Client
+var authClient = new AuthClient(options.AuthBaseUrl);
+
 if (!string.IsNullOrWhiteSpace(options.BearerToken))
 {
     http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", options.BearerToken);
 }
-
-// Auth Client
-var authClient = new AuthClient(options.AuthBaseUrl);
-var currentToken = options.BearerToken;
+else if (!string.IsNullOrWhiteSpace(options.UserEmail) && !string.IsNullOrWhiteSpace(options.UserPassword))
+{
+    Console.WriteLine($"[AUTH] Tentando autenticar com {options.UserEmail}...");
+    var token = await authClient.LoginAsync(options.UserEmail, options.UserPassword);
+    if (!string.IsNullOrEmpty(token))
+    {
+         http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+         Console.WriteLine($"[AUTH] Autenticado com sucesso!");
+    }
+}
 
 // Propriedades Client
 using var propHttp = new HttpClient
@@ -67,6 +77,7 @@ Console.WriteLine("AgroSolutions.Ingestao.Simulador");
 Console.WriteLine($"BaseUrl: {http.BaseAddress}");
 Console.WriteLine($"AuthUrl: {options.AuthBaseUrl}");
 Console.WriteLine($"PropriedadesUrl: {options.PropriedadesBaseUrl}");
+Console.WriteLine($"UsuariosConn: {(string.IsNullOrEmpty(options.UsuariosConnectionString) ? "N/A" : "Configured")}");
 if (simulationUsers.Count == 0)
 {
     if (options.Talhoes.Count > 0)
@@ -88,6 +99,132 @@ Console.WriteLine($"Fonte: {options.Fonte} | Dispositivo: {options.IdDispositivo
 Console.WriteLine();
 
 var rnd = new Random(options.Seed);
+
+// Cache de tokens de usuários (email -> token)
+var userTokenCache = new Dictionary<string, string>();
+
+async Task<string?> GetTokenForUser(string email, string? fallbackPassword = null)
+{
+    if (userTokenCache.TryGetValue(email, out var token) && !string.IsNullOrEmpty(token))
+    {
+        return token;
+    }
+
+    var pass = fallbackPassword ?? "Password123!"; // Default fallback
+    // Se tivermos a senha real em options.UserPassword e o email bater, usamos ela
+    if (email.Equals(options.UserEmail, StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(options.UserPassword))
+    {
+        pass = options.UserPassword;
+    }
+    
+    // Tenta autenticar
+    Console.WriteLine($"[AUTH-GET] Tentando obter token para {email}...");
+    var newToken = await authClient.LoginAsync(email, pass);
+    if (!string.IsNullOrEmpty(newToken))
+    {
+        userTokenCache[email] = newToken;
+        return newToken;
+    }
+    
+    // Se falhar e a senha for diferente do default, tenta o default
+    if (pass != "Password123!")
+    {
+        Console.WriteLine($"[AUTH-GET] Falha com senha fornecida. Tentando senha default 'Password123!'...");
+        newToken = await authClient.LoginAsync(email, "Password123!");
+        if (!string.IsNullOrEmpty(newToken))
+        {
+            userTokenCache[email] = newToken;
+            return newToken;
+        }
+    }
+    
+    return null;
+}
+
+// Mapa de PropriedadeId -> OwnerEmail
+var propriedadeOwnerCache = new Dictionary<Guid, string>();
+
+async Task<string?> GetOwnerEmailForPropriedade(Guid propriedadeId)
+{
+    if (propriedadeOwnerCache.TryGetValue(propriedadeId, out var email))
+    {
+        return email;
+    }
+
+    // Se a conexão com Usuarios não estiver configurada, retornamos null
+    if (string.IsNullOrWhiteSpace(options.UsuariosConnectionString) || string.IsNullOrWhiteSpace(options.PropriedadesConnectionString))
+    {
+        return null;
+    }
+
+    try
+    {
+        // 1. Obter OwnerUserId da Propriedade (DB Propriedades)
+        string? ownerUserId = null;
+        using (var connProp = new SqlConnection(options.PropriedadesConnectionString))
+        {
+            await connProp.OpenAsync();
+            using var cmd = new SqlCommand("SELECT OwnerUserId FROM Propriedades WHERE Id = @Id", connProp);
+            cmd.Parameters.AddWithValue("@Id", propriedadeId);
+            var result = await cmd.ExecuteScalarAsync();
+            if (result != null && result != DBNull.Value)
+            {
+                ownerUserId = result.ToString();
+            }
+        }
+
+        if (string.IsNullOrWhiteSpace(ownerUserId)) return null;
+
+        // 2. Obter Email do Usuario (DB Usuarios)
+        // O OwnerUserId na tabela Propriedades pode ser o ID (int) ou algo mapeado. 
+        // Vamos assumir que é o ID (int) convertido pra string, ou o Email?
+        // Na estrutura do Usuario.cs o Id é int.
+        
+        // Tenta parsear pra int
+        string queryUser = "SELECT Email FROM Usuarios WHERE Id = @Id";
+        object paramValue = ownerUserId;
+        
+        if (int.TryParse(ownerUserId, out int userIdInt))
+        {
+            paramValue = userIdInt;
+        }
+        else 
+        {
+            // Se não é int, talvez seja GUID ou String. Se for email, já temos.
+            if (ownerUserId.Contains("@")) 
+            {
+                propriedadeOwnerCache[propriedadeId] = ownerUserId;
+                return ownerUserId;
+            }
+            // Retorna null se não soubermos lidar
+            // return null; 
+            // Mas vamos tentar query com string se o banco suportar conversão ou se for string
+        }
+
+        using (var connUser = new SqlConnection(options.UsuariosConnectionString))
+        {
+            await connUser.OpenAsync();
+            using var cmdUser = new SqlCommand(queryUser, connUser);
+            cmdUser.Parameters.AddWithValue("@Id", paramValue);
+            var resultUser = await cmdUser.ExecuteScalarAsync();
+            if (resultUser != null && resultUser != DBNull.Value)
+            {
+                var userEmail = resultUser.ToString();
+                if (!string.IsNullOrEmpty(userEmail))
+                {
+                    propriedadeOwnerCache[propriedadeId] = userEmail;
+                    return userEmail;
+                }
+            }
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[ERRO-OWNER] Falha ao buscar dono da propriedade {propriedadeId}: {ex.Message}");
+    }
+
+    return null;
+}
 
 async Task<List<(Guid Id, Guid PropriedadeId)>> FetchTalhoesDinamicamente()
 {
@@ -147,6 +284,8 @@ async Task<List<(Guid Id, Guid PropriedadeId)>> FetchTalhoesDinamicamente()
 
 async Task SendDataForTalhao(Guid idTalhao, SimuladorOptions currentOptions, int totalPorTalhao)
 {
+    // O Header Authorization já foi setado pelo caller (GetTokenForUser)
+    
     for (int i = 0; i < totalPorTalhao; i++)
     {
          var leitura = LeituraSensorDto.CriarAleatoria(idTalhao, currentOptions, rnd);
@@ -156,6 +295,15 @@ async Task SendDataForTalhao(Guid idTalhao, SimuladorOptions currentOptions, int
          {
              var resp = await http.PostAsync("api/v1/leituras-sensores", content);
              
+             // Se autorização falhar (401), podemos tentar invalidar o cache de token para este user?
+             // Como não temos o user email fácil aqui, vamos apenas logar e seguir.
+             // O caller deveria tratar re-login se necessário, mas para simulação simples:
+             
+             if (resp.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+             {
+                 Console.WriteLine($"[ERRO-AUTH] 401 Unauthorized para Talhão={idTalhao}. Verifique credenciais do dono.");
+             }
+
              if (!resp.IsSuccessStatusCode)
              {
                  var body = await resp.Content.ReadAsStringAsync();
@@ -271,6 +419,37 @@ try
                             var randomProp = Guid.Parse($"00000000-0000-0000-0000-00000000000{suffix}");
                             currentOptions = options with { IdPropriedade = randomProp };
                         }
+                    }
+                    
+                    // Resolvendo autenticação dinâmica baseada no dono da propriedade
+                    string? tokenToUse = null;
+                   
+                    // Tenta identificar o dono
+                    var ownerEmail = await GetOwnerEmailForPropriedade(propId);
+                    if (!string.IsNullOrEmpty(ownerEmail))
+                    {
+                        var userToken = await GetTokenForUser(ownerEmail, "Password123!");
+                        if (!string.IsNullOrEmpty(userToken))
+                        {
+                            tokenToUse = userToken;
+                        }
+                    }
+
+                    // Se não conseguiu token específico, tenta usar o global/env
+                    if (string.IsNullOrEmpty(tokenToUse))
+                    {
+                        tokenToUse = options.BearerToken;
+                    }
+
+                    // Configura header SE tiver token
+                    if (!string.IsNullOrEmpty(tokenToUse))
+                    {
+                        http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", tokenToUse);
+                    }
+                    else
+                    {
+                        // Se não tem token nenhum, remove o header para não enviar lixo (ou envia sem auth e toma 401)
+                        http.DefaultRequestHeaders.Authorization = null;
                     }
                     
                     await SendDataForTalhao(idTalhao, currentOptions, options.TotalPorTalhao);

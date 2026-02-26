@@ -23,15 +23,17 @@ internal sealed record SimuladorOptions(
     decimal PrecipitacaoMax,
     string? SimulationConfigPath,
     string PropriedadesBaseUrl,
-    string? PropriedadesConnectionString
+    string? PropriedadesConnectionString,
+    string? UsuariosConnectionString
 )
 {
     public static SimuladorOptions FromArgs(string[] args)
     {
         // Defaults (podem ser sobrescritos por env vars e/ou args)
         var baseUrl = Environment.GetEnvironmentVariable("INGESTAO_BASE_URL") ?? BuildDefaultBaseUrl();
-        var propriedadesBaseUrl = Environment.GetEnvironmentVariable("PROPRIEDADES_BASE_URL") ?? "http://localhost:5146";
+        var propriedadesBaseUrl = Environment.GetEnvironmentVariable("PROPRIEDADES_BASE_URL") ?? "http://localhost:30002";
         var propriedadesConnString = Environment.GetEnvironmentVariable("PROPRIEDADES_CONNECTION_STRING") ?? "Server=localhost,1433;Database=AgroSolutionsPropriedades;User Id=sa;Password=Fi@p2026;TrustServerCertificate=True;";
+        var usuariosConnString = Environment.GetEnvironmentVariable("USUARIOS_CONNECTION_STRING") ?? "Server=localhost,1433;Database=AgroSolutionsUsuarios;User Id=sa;Password=Fi@p2026;TrustServerCertificate=True;";
         var talhoesCsv = Environment.GetEnvironmentVariable("TALHOES") ?? "";
         var idPropriedadeRaw = Environment.GetEnvironmentVariable("ID_PROPRIEDADE") ?? "00000000-0000-0000-0000-000000000001";
         var intervalo = TryInt(Environment.GetEnvironmentVariable("INTERVALO_SECONDS"), 5);
@@ -41,7 +43,7 @@ internal sealed record SimuladorOptions(
         var token = Environment.GetEnvironmentVariable("BEARER_TOKEN");
         var userEmail = Environment.GetEnvironmentVariable("SIM_USER_EMAIL");
         var userPassword = Environment.GetEnvironmentVariable("SIM_USER_PASSWORD");
-        var authBaseUrl = Environment.GetEnvironmentVariable("AUTH_BASE_URL") ?? "http://localhost:5079";
+        var authBaseUrl = Environment.GetEnvironmentVariable("AUTH_BASE_URL") ?? "http://localhost:30001";
         var seed = TryInt(Environment.GetEnvironmentVariable("SEED"), Environment.TickCount);
         var simConfigPath = Environment.GetEnvironmentVariable("SIMULATION_CONFIG_PATH");
 
@@ -130,7 +132,8 @@ internal sealed record SimuladorOptions(
             PrecipitacaoMax: precMax,
             SimulationConfigPath: simConfigPath,
             PropriedadesBaseUrl: propriedadesBaseUrl,
-            PropriedadesConnectionString: propriedadesConnString
+            PropriedadesConnectionString: propriedadesConnString,
+            UsuariosConnectionString: usuariosConnString
         );
     }
 
@@ -191,7 +194,7 @@ internal sealed record LeituraSensorDto(
         // Novos parâmetros conforme solicitação:
         // Umidade do Solo: 15% a 40%
         var umidade = NextRange(rnd, 15m, 40m);
-        
+
         // Temperatura Ambiente: 18°C a 35°C
         var temp = NextRange(rnd, 18m, 35m);
 

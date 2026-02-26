@@ -99,6 +99,7 @@ public class RabbitMqLeiturasConsumer : BackgroundService
 
     private async Task ProcessarMensagemAsync(string json)
     {
+        _logger.LogInformation("MSG RECEBIDA: {Json}", json);
         var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
         var evento = JsonSerializer.Deserialize<LeituraSensorEvent>(json, options);
 
@@ -107,6 +108,10 @@ public class RabbitMqLeiturasConsumer : BackgroundService
             _logger.LogWarning("Mensagem inválida ou payload nulo recebido.");
             return;
         }
+
+        _logger.LogInformation("Processando leitura: U={Umidade}, T={Temperatura}", 
+            evento.Leitura.Metricas?.UmidadeSoloPercentual, 
+            evento.Leitura.Metricas?.TemperaturaCelsius);
 
         // Conversão para DTO de Domínio
         var leitura = new Leitura

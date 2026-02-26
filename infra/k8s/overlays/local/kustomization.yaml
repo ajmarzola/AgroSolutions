@@ -8,7 +8,6 @@ resources:
 - ../../base/propriedades
 - ../../base/usuarios
 - ../../base/observability
-- ../../base/database
 - ../../rabbitmq
 - logging/loki.yaml
 - logging/promtail.yaml
@@ -39,7 +38,8 @@ patches:
 - path: ingestao-replicas.patch.yaml
 - path: monitoring/service-labels.patch.yaml
 - path: service-nodeport.patch.yaml
-- path: grafana-patch.yaml
+- path: grafana-nodeport.yaml
+
 
 secretGenerator:
   - name: agrosolutions-auth-secrets
@@ -49,11 +49,8 @@ secretGenerator:
     envs:
     - .env
   - name: rabbitmq-secret
-    literals:
-    - RABBITMQ_DEFAULT_USER=guest
-    - RABBITMQ_DEFAULT_PASS=guest
-    - RABBITMQ_USERNAME=guest
-    - RABBITMQ_PASSWORD=guest
+    envs:
+    - .env
   - name: grafana-env-secret
     envs:
     - .env

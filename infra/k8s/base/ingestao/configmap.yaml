@@ -9,3 +9,4 @@ data:
   Logging__LogLevel__Default: Information
   Identity__BaseUrl: http://ingestao
   Propriedades__ConnectionString: "" # Override via Overlay/Secret
+  USUARIOS_CONNECTION_STRING: "Server=sql-service;Database=Usuarios;User Id=sa;Password=Fi@p2026;TrustServerCertificate=True;"

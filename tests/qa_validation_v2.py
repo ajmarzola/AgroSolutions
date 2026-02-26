@@ -5,6 +5,7 @@ import time
 import sys
 import datetime
 import re
+import pyodbc 
 
 # Configuration
 BASE_URL_USUARIOS = "http://localhost:30001"
@@ -12,7 +13,12 @@ BASE_URL_PROPRIEDADES = "http://localhost:30002"
 BASE_URL_INGESTAO = "http://localhost:30003"
 SQL_POD_SELECTOR = "app=sql-server"
 ANALISE_POD_SELECTOR = "app.kubernetes.io/name=analise"
+# ANALISE_POD_SELECTOR = "app.kubernetes.io/name=analise" # Keep original commented if used elsewhere
 NAMESPACE = "agrosolutions-local"
+
+# Azure SQL Connection String
+SQL_CONN_STR = "Driver={ODBC Driver 17 for SQL Server};Server=tcp:agrosolutions.database.windows.net,1433;Database={database};Uid=usr_agro;Pwd=Fi@p2026;Encrypt=yes;TrustServerCertificate=yes;Connection Timeout=60;"
+SQL_CONN_STR_MASTER = "Driver={ODBC Driver 17 for SQL Server};Server=tcp:agrosolutions.database.windows.net,1433;Database=master;Uid=usr_agro;Pwd=Fi@p2026;Encrypt=yes;TrustServerCertificate=yes;Connection Timeout=60;"
 
 def get_pod_name(selector):
     # Use output=name and strip 'pod/' prefix
@@ -28,32 +34,32 @@ def get_pod_name(selector):
     return ""
 
 def run_sql_query(query, database):
-    pod_name = get_pod_name(SQL_POD_SELECTOR)
-    if not pod_name:
-        print("❌ Could not find SQL Pod.")
+    try:
+        # Use replace instead of format to avoid issues with curly braces in Driver definition
+        conn_str = SQL_CONN_STR.replace("{database}", database)
+        if database == "master":
+             conn_str = SQL_CONN_STR_MASTER
+        
+        print(f"DEBUG: Connecting to {database}...")
+        with pyodbc.connect(conn_str) as conn:
+            cursor = conn.cursor()
+            cursor.execute(query)
+            
+            # If query returns rows (SELECT), fetch result
+            if query.strip().upper().startswith("SELECT"):
+                row = cursor.fetchone()
+                if row:
+                    res = str(row[0]) # Start with first column
+                    return res
+                else:
+                    return "0" 
+            
+            conn.commit()
+            return "OK"
+
+    except Exception as e:
+        print(f"❌ SQL Error using pyodbc: {e}")
         return None
-    
-    # Using sqlcmd inside the pod
-    # Password set in .env is Fi@p2026 (updated in configmap patch)
-    
-    # Note: Use single quotes for PowerShell execution string, double quotes for query
-    cmd_str = f'kubectl exec -n {NAMESPACE} {pod_name} -- /opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P "Fi@p2026" -d {database} -Q "{query}" -h -1 -W'
-    
-    # print(f"Executing SQL on {database}...")
-    res = subprocess.run(["powershell", "-c", cmd_str], capture_output=True, text=True)
-    if res.returncode != 0:
-        print(f"❌ SQL Error: {res.stderr}")
-        return None
-    
-    # Clean output: remove empty lines and "(X rows affected)"
-    output_lines = res.stdout.strip().split('\n')
-    for line in output_lines:
-        line = line.strip()
-        if line and not line.startswith("(") and re.match(r'^\d+$', line):
-            return line
-    
-    # Fallback to original strip if regex match fails (e.g. for non-numeric queries but here we mostly use count)
-    return res.stdout.strip()
 
 def check_metrics_endpoint(base_url, service_name):
     url = f"{base_url}/metrics"
@@ -170,7 +176,7 @@ def main():
     talhao_id = None
     try:
         # Check Initial Prop Count
-        initial_props = run_sql_query("SELECT COUNT(*) FROM Propriedades", "AgroSolutionsPropriedades")
+        initial_props = run_sql_query("SELECT COUNT(*) FROM Propriedades", "Propriedades") # DB Name fixed for Azure
 
         # Create Property
         prop_payload = {"nome": "QA Farm", "localizacao": "QA Lab"}
@@ -185,7 +191,7 @@ def main():
         
         # Verify Persistence
         time.sleep(1)
-        final_props = run_sql_query("SELECT COUNT(*) FROM Propriedades", "AgroSolutionsPropriedades")
+        final_props = run_sql_query("SELECT COUNT(*) FROM Propriedades", "Propriedades")
         if final_props and initial_props and int(final_props) > int(initial_props):
              print("✅ DB Validation: Property persisted.")
         else:
@@ -211,7 +217,7 @@ def main():
     print("\n--- 3. Ingestion & Alerts ---")
     try:
         # Check initial count in Ingestao
-        initial_leituras = run_sql_query("SELECT COUNT(*) FROM SensorLeitura", "AgroSolutionsIngestao")
+        initial_leituras = run_sql_query("SELECT COUNT(*) FROM SensorLeitura", "Ingestao") # Database name fixed for Azure
         print(f"Initial Leituras Count: {initial_leituras}")
         
         # Send Reading
@@ -240,18 +246,18 @@ def main():
         print("Waiting for processing and persistence (5s)...")
         time.sleep(5) # Wait for RabbitMQ -> Analise -> DB
         
-        final_leituras = run_sql_query("SELECT COUNT(*) FROM SensorLeitura", "AgroSolutionsIngestao")
+        final_leituras = run_sql_query("SELECT COUNT(*) FROM SensorLeitura", "Ingestao")
         print(f"Final Leituras Count: {final_leituras}")
         
-        if final_leituras and initial_leituras and int(final_leituras) > int(initial_leituras):
-             print("✅ DB Validation: Data persisted in AgroSolutionsIngestao.")
+        if final_leituras is not None and initial_leituras is not None and int(final_leituras) > int(initial_leituras):
+             print("✅ DB Validation: Data persisted in Ingestao.")
         else:
-             print("⚠️ DB Validation: Count did not increase in AgroSolutionsIngestao (Check if it stores locally or only via queue).")
+             print("⚠️ DB Validation: Count did not increase in Ingestao (Check if it stores locally or only via queue).")
         
         # 4. Alertas validation
         
-        # Check Alertas table in AgroSolutionsAnalise
-        alerts_count = run_sql_query("SELECT COUNT(*) FROM Alerta", "AgroSolutionsAnalise")
+        # Check Alertas table in Analise
+        alerts_count = run_sql_query("SELECT COUNT(*) FROM Alerta", "Analise")
         print(f"Alerts Count: {alerts_count}") 
         
         if alerts_count and int(alerts_count) > 0:
